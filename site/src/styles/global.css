@@ -1,0 +1,308 @@
+/* Design tokens and base styles. Constraints live in .claude/skills/house-style/SKILL.md.
+   Light palette on bare :root; only what changes is redefined for dark. */
+
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --border: #e3ded6;
+  --text: #1c1a17;
+  --muted: #5f594f;
+  --accent: #9a4f21;
+  --accent-soft: #f3e9e1;
+  --code-bg: #f4f1ec;
+
+  --measure: 68ch;
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.375rem;
+  --step-2: 2rem;
+
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #161513;
+    --surface: #1e1c19;
+    --border: #332f29;
+    --text: #eae6df;
+    --muted: #a49c8f;
+    --accent: #e08b52;
+    --accent-soft: #2a211a;
+    --code-bg: #232019;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #161513;
+  --surface: #1e1c19;
+  --border: #332f29;
+  --text: #eae6df;
+  --muted: #a49c8f;
+  --accent: #e08b52;
+  --accent-soft: #2a211a;
+  --code-bg: #232019;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.65;
+  -webkit-text-size-adjust: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+@media (min-width: 60rem) {
+  .layout {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* --- section nav --- */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1.25rem;
+}
+
+.nav ol {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+  font-size: var(--step--1);
+}
+
+.nav a {
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav a:hover,
+.nav a:focus-visible {
+  color: var(--accent);
+}
+
+@media (min-width: 60rem) {
+  .nav {
+    height: 100vh;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    padding: 3rem 1.5rem;
+    overflow-y: auto;
+  }
+
+  .nav ol {
+    flex-direction: column;
+    gap: 0.6rem;
+    overflow-x: visible;
+  }
+
+  /* nowrap is right for the horizontal mobile scroller and wrong for the vertical
+     desktop column, where it truncates the longer section titles. */
+  .nav a {
+    display: block;
+    white-space: normal;
+    line-height: 1.35;
+  }
+}
+
+.nav .nav-title {
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+  font-size: var(--step--1);
+  letter-spacing: 0.02em;
+  display: none;
+}
+
+@media (min-width: 60rem) {
+  .nav .nav-title {
+    display: block;
+  }
+}
+
+/* --- content --- */
+
+main {
+  padding: 2rem 1.25rem 6rem;
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  main {
+    padding: 4rem 3rem 8rem;
+  }
+}
+
+.section {
+  max-width: var(--measure);
+  margin: 0 0 5rem;
+  scroll-margin-top: 5rem;
+}
+
+.section-index {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--step-2);
+  margin: 0.2em 0 0.4em;
+}
+
+h2 {
+  font-size: var(--step-1);
+  margin: 2rem 0 0.6rem;
+}
+
+h3 {
+  font-size: var(--step-0);
+  margin: 1.6rem 0 0.4rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--step--1);
+}
+
+p,
+li {
+  max-width: var(--measure);
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--code-bg);
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: var(--step--1);
+  line-height: 1.5;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Wide content scrolls inside its own container; the page never scrolls sideways. */
+.table-wrap {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* Markdown emits a bare <table> with no wrapper, so the table itself has to be the scroll
+   container. Without this the whole page scrolls sideways on a phone. */
+table {
+  display: block;
+  overflow-x: auto;
+  width: max-content;
+  min-width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 1.25rem 0;
+  font-size: var(--step--1);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+th {
+  font-weight: 600;
+  background: var(--surface);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+blockquote {
+  margin: 1.25rem 0;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 0 6px 6px 0;
+}
+
+blockquote p {
+  margin: 0;
+}
+
+/* A shell is labelled where it appears, not in a footnote. */
+.shell {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  padding: 0.05em 0.4em;
+  vertical-align: 0.15em;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 3rem 0;
+}
+
+footer {
+  max-width: var(--measure);
+  color: var(--muted);
+  font-size: var(--step--1);
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}

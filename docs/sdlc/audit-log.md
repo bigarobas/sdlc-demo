@@ -16,3 +16,8 @@ Human edits do not appear here — they appear in `git log` under a real name.
 | 2026-09-09 20:50:22 | 85d23673 | Edit | `proposals/.github/workflows/deploy.yml` |
 | 2026-09-09 20:50:26 | 85d23673 | Edit | `proposals/.github/workflows/deploy.yml` |
 | 2026-09-09 20:51:52 | 85d23673 | Edit | `AGENTS.md` |
+| 2026-09-09 21:05:19 | 85d23673 | Write | `site/src/styles/global.css` |
+| 2026-09-09 21:05:27 | 85d23673 | Write | `site/src/layouts/Base.astro` |
+| 2026-09-09 21:05:37 | 85d23673 | Write | `site/src/pages/index.astro` |
+| 2026-09-09 21:07:38 | 85d23673 | Edit | `site/src/styles/global.css` |
+| 2026-09-09 21:09:52 | 85d23673 | Edit | `site/src/styles/global.css` |
