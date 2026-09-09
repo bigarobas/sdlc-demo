@@ -26,6 +26,23 @@ const ROOT_URL = `http://localhost:${PORT}${BASE}`;
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
+// Fail early and actionably. Astro reports the wrong Node version, but not that `nvm use`
+// silently does nothing on Windows without elevation — which is how a shell ends up back on
+// Node 20 after you were sure you had switched.
+const MIN_MAJOR = 22;
+const major = Number(process.versions.node.split('.')[0]);
+if (major < MIN_MAJOR) {
+  console.error(
+    `\n✗ Node ${process.versions.node} is too old — Astro needs >=${MIN_MAJOR}.12.0.\n\n` +
+      `  This shell only:\n` +
+      `    PowerShell   $env:Path = "$env:APPDATA\\nvm\\v22.19.0;$env:Path"\n` +
+      `    Git Bash     export PATH="/c/Users/rashi/AppData/Roaming/nvm/v22.19.0:$PATH"\n\n` +
+      `  Permanently: run \`nvm use 22.19.0\` in an ADMINISTRATOR PowerShell.\n` +
+      `  Without elevation nvm-windows cannot rewrite its symlink and fails silently.\n`,
+  );
+  process.exit(1);
+}
+
 function run(args, label) {
   const r = spawnSync(npm, args, { stdio: 'inherit', shell: process.platform === 'win32' });
   if (r.status !== 0) {

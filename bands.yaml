@@ -15,12 +15,12 @@ bands:
   availability:
     check: http_status
     expect: 200
-    breach_after: 2        # consecutive failed checks before opening an issue
+    breach_after: 2 # consecutive failed checks before opening an issue
     severity: high
 
   page_weight:
     check: transfer_bytes
-    max: 512000            # 500 KB for the whole landing page
+    max: 512000 # 500 KB for the whole landing page
     severity: medium
 
   build_time:

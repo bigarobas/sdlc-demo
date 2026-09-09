@@ -8,12 +8,12 @@ this file rather than restating it.
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `npm run verify` | build → serve at the real base → crawl every link → run evals. **The one command.** |
-| `npm run dev` | Astro dev server |
-| `npm run build` | production build (`/sdlc/`) |
-| `VERIFY_BASE=sdlc-demo/preview npm run verify` | verify the preview target |
+| Command                                        | What it does                                                                        |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `npm run verify`                               | build → serve at the real base → crawl every link → run evals. **The one command.** |
+| `npm run dev`                                  | Astro dev server                                                                    |
+| `npm run build`                                | production build (`/sdlc/`)                                                         |
+| `VERIFY_BASE=sdlc-demo/preview npm run verify` | verify the preview target                                                           |
 
 Never claim work is done without `npm run verify` passing. Prefer the `verifier` subagent so
 build output stays out of the implementation context.

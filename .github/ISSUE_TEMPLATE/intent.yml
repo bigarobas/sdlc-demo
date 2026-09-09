@@ -1,6 +1,6 @@
 name: Intent
 description: Propose a change. This is Stage 1 of the SDLC — describe the problem, not the solution.
-title: "[intent] "
+title: '[intent] '
 labels: [intent]
 body:
   - type: markdown

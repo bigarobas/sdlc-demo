@@ -1,0 +1,56 @@
+name: Verify
+
+# STAGE 4 (Test) — deterministic, free, and the only thing allowed to say "it works".
+#
+# No agent runs here. Build, link check and evals cost nothing but runner minutes, so this
+# can fire on every push without touching the Pro quota. That is the point of keeping the
+# expensive stages few: the cheap ones can then be relentless.
+#
+# Both deploy targets are subfolders, so the matrix checks both bases. A base-path bug that
+# only appears in production is a bug that first appears on stage.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: production
+            base: sdlc
+          - name: preview
+            base: sdlc-demo/preview
+
+    name: verify (${{ matrix.name }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix site
+
+      - name: Verify
+        env:
+          VERIFY_BASE: ${{ matrix.base }}
+        run: npm run verify
+
+      - name: Check formatting
+        run: npx prettier --check .

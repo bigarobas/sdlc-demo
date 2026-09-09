@@ -8,12 +8,24 @@
 import { readFileSync } from 'node:fs';
 
 const RULES = [
-  { pattern: /\bgit\s+push\b[^\n]*--force(?!-with-lease)/, why: 'force-push discards history that CI and review already ran against; use --force-with-lease' },
+  {
+    pattern: /\bgit\s+push\b[^\n]*--force(?!-with-lease)/,
+    why: 'force-push discards history that CI and review already ran against; use --force-with-lease',
+  },
   { pattern: /\bgit\s+reset\s+--hard\b/, why: 'discards uncommitted work with no recovery path' },
-  { pattern: /\brm\s+-[a-zA-Z]*[rf][a-zA-Z]*\s+\/(?:\s|$)/, why: 'recursive delete of the filesystem root' },
-  { pattern: /\bcurl\b[^|]*\|\s*(?:ba)?sh\b/, why: 'piping a downloaded script straight into a shell executes unreviewed remote code' },
+  {
+    pattern: /\brm\s+-[a-zA-Z]*[rf][a-zA-Z]*\s+\/(?:\s|$)/,
+    why: 'recursive delete of the filesystem root',
+  },
+  {
+    pattern: /\bcurl\b[^|]*\|\s*(?:ba)?sh\b/,
+    why: 'piping a downloaded script straight into a shell executes unreviewed remote code',
+  },
   { pattern: /\bgh\s+repo\s+delete\b/, why: 'deletes the repository' },
-  { pattern: /\bgit\s+push\b[^\n]*\bmain\b/, why: 'pushing straight to main bypasses the PR, the review and the deploy gate' },
+  {
+    pattern: /\bgit\s+push\b[^\n]*\bmain\b/,
+    why: 'pushing straight to main bypasses the PR, the review and the deploy gate',
+  },
 ];
 
 function deny(reason) {

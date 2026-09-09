@@ -20,7 +20,7 @@ nobody removes it.
    - Options, flags and parameters nothing passes. Delete them.
    - A second implementation of something the repo already does. Use the existing one.
    - Defensive code for conditions that cannot occur here.
-   - Comments that restate the code. Keep comments that explain *why*.
+   - Comments that restate the code. Keep comments that explain _why_.
    - Names that describe the implementation rather than the intent.
 3. Make the edits.
 4. Run `npm run verify`, or ask the `verifier` subagent. **Behaviour must not change.**

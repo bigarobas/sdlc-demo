@@ -1,0 +1,22 @@
+node_modules/
+site/dist/
+site/.astro/
+package-lock.json
+site/package-lock.json
+
+# Accepted SDLC artifacts are frozen (see .claude/hooks/protect-approved.mjs).
+# A formatter that rewrites an accepted decision record defeats the point of freezing it,
+# and would put two guardrails in conflict.
+docs/sdlc/
+
+# site/CLAUDE.md is a SYMLINK to site/AGENTS.md. Writing through it can replace the link
+# with a regular file, which has already broken once.
+site/AGENTS.md
+site/CLAUDE.md
+
+# Guardrails are installed by a human through proposals/, never by a tool run over the
+# whole repo. A blanket `prettier --write .` reaches them through the shell, past the
+# PreToolUse hook that guards the Write tool — which is exactly the route-around that
+# AGENTS.md forbids. Excluding them keeps the human-install lane the only way in.
+.claude/settings.json
+.claude/hooks/

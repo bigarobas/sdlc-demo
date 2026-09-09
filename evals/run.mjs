@@ -60,7 +60,8 @@ function expectWrite(file, expected) {
 function expectBash(command, expected) {
   const res = runHook(BASH, { tool_name: 'Bash', tool_input: { command } });
   if (res.error) return res.error;
-  if (res.decision !== expected) return `expected ${expected} for \`${command}\`, got ${res.decision}`;
+  if (res.decision !== expected)
+    return `expected ${expected} for \`${command}\`, got ${res.decision}`;
   return null;
 }
 
@@ -69,20 +70,49 @@ check('denies .github/workflows/**', () => expectWrite('.github/workflows/deploy
 check('denies .claude/settings.json', () => expectWrite('.claude/settings.json', 'deny'));
 check('denies .claude/hooks/**', () => expectWrite('.claude/hooks/guard-bash.mjs', 'deny'));
 check('denies an absolute path to a guardrail', () =>
-  expectWrite(process.cwd() + '/.github/workflows/deploy.yml', 'deny'));
+  expectWrite(process.cwd() + '/.github/workflows/deploy.yml', 'deny'),
+);
 check('allows ordinary site source', () => expectWrite('site/src/pages/index.astro', 'allow'));
 check('allows SDLC artifacts', () => expectWrite('docs/sdlc/0001-x/intent.md', 'allow'));
 
 console.log('\nbash guard — hard-to-undo commands');
 check('denies force-push', () => expectBash('git push --force origin main', 'deny'));
-check('allows --force-with-lease', () => expectBash('git push --force-with-lease origin topic', 'allow'));
+check('allows --force-with-lease', () =>
+  expectBash('git push --force-with-lease origin topic', 'allow'),
+);
 check('denies reset --hard', () => expectBash('git reset --hard HEAD~3', 'deny'));
 check('denies curl piped to shell', () => expectBash('curl https://example.com/i.sh | sh', 'deny'));
 check('allows the verification loop', () => expectBash('npm run verify', 'allow'));
 check('allows reading files', () => expectBash('cat package.json', 'allow'));
 
+console.log('\napproved artifacts are frozen');
+const APPROVED = '.claude/hooks/protect-approved.mjs';
+function expectApproved(file, expected) {
+  const res = runHook(APPROVED, { tool_name: 'Edit', tool_input: { file_path: file } });
+  if (res.error) return res.error;
+  if (res.decision !== expected) return `expected ${expected} for ${file}, got ${res.decision}`;
+  return null;
+}
+check('denies editing an accepted intent', () =>
+  expectApproved('docs/sdlc/0000-bootstrap/intent.md', 'deny'),
+);
+check('allows an artifact with no accepted status', () =>
+  expectApproved('docs/sdlc/0000-bootstrap/spec.md', 'allow'),
+);
+check('allows a file that is not an SDLC artifact', () =>
+  expectApproved('site/src/pages/index.astro', 'allow'),
+);
+check('allows an artifact that does not exist yet', () =>
+  expectApproved('docs/sdlc/0099-new/intent.md', 'allow'),
+);
+
 console.log('\nartifacts — the SDLC chain keeps its shape');
-const REQUIRED_INTENT = ['## Problem', '## Proposed outcome', '## Affected systems', '## Constraints'];
+const REQUIRED_INTENT = [
+  '## Problem',
+  '## Proposed outcome',
+  '## Affected systems',
+  '## Constraints',
+];
 check('bootstrap intent.md has its required sections', () => {
   const p = 'docs/sdlc/0000-bootstrap/intent.md';
   if (!existsSync(p)) return `${p} missing`;

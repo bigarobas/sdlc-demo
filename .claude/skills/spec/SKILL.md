@@ -5,7 +5,7 @@ description: Stage 2 (Design). Turn an accepted docs/sdlc/NNNN-slug/intent.md in
 
 # Writing a spec
 
-The spec answers *how*, and more importantly *why this way*. Its most valuable output is not
+The spec answers _how_, and more importantly _why this way_. Its most valuable output is not
 the design — it is the numbered decisions, because those are what later work cites when it
 needs to diverge.
 
@@ -28,9 +28,9 @@ Implements [intent.md](./intent.md).
 
 ## 1. Guiding decisions
 
-| # | Decision | Why |
-|---|---|---|
-| D1 | … | … |
+| #   | Decision | Why |
+| --- | -------- | --- |
+| D1  | …        | …   |
 
 ## 2. Design
 
@@ -43,7 +43,7 @@ What is knowingly not built, and why. Shells are named as shells here.
 ## 4. Risks
 
 | Risk | Mitigation |
-|---|---|
+| ---- | ---------- |
 ```
 
 ## Rules
@@ -56,4 +56,4 @@ What is knowingly not built, and why. Shells are named as shells here.
   convention does not.
 - When you supersede an earlier decision, edit the row and note what changed. Do not leave
   two contradictory decisions in the repository.
-- Name what you are *not* building. The omissions section is what keeps a demo honest.
+- Name what you are _not_ building. The omissions section is what keeps a demo honest.
