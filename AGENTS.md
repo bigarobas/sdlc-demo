@@ -79,6 +79,13 @@ labelled as shells.
 - **Git Bash rewrites leading-slash arguments into Windows paths.** Pass base values
   slashless (`sdlc-demo/preview`); `scripts/verify.mjs` normalises them.
 - **`start-server-and-test` spawns `wmic.exe`**, which Windows 11 removed. Do not add it back.
+- **Never read `$?` after a pipe.** `npm run verify | grep ...; echo $?` reports _grep's_
+  status, so a hanging or failing command looks green. This produced a false pass that hid
+  a real hang for two rounds. Capture the exit code of the command itself, and check elapsed
+  time when a hang is possible.
+- **`astro preview` daemonises on Windows but runs in the foreground on Linux.** A blocking
+  `spawnSync` therefore returns on a laptop and hangs forever in CI. `scripts/verify.mjs`
+  spawns it asynchronously and exits explicitly.
 - **`site/CLAUDE.md` is a symlink to `site/AGENTS.md`.** Astro scaffolds it that way. Writing
   to one writes through to the other, so edit `site/AGENTS.md` and leave the link alone.
   Overwriting it once left `site/AGENTS.md` importing itself.
