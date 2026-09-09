@@ -1,0 +1,36 @@
+# Control bands — what "healthy" means for this site, in numbers.  [spec section 5]
+#
+# Checked by .github/workflows/bands.yml on a schedule. A breach opens a GitHub issue
+# labelled `intent`, which re-triggers Stage 1 and closes the SDLC loop. The check is
+# deterministic: curl, a threshold, gh issue create. It costs no tokens, which is why it
+# can be trusted to work on the day of the talk.
+#
+# HONEST LIMITATION: the mechanism is real, the metrics are toy. There are no users, so
+# there is nothing here about error rates, latency percentiles or conversion. Say so on
+# the site rather than implying a production monitoring story.
+
+target: https://rashid.fr/sdlc/
+
+bands:
+  availability:
+    check: http_status
+    expect: 200
+    breach_after: 2        # consecutive failed checks before opening an issue
+    severity: high
+
+  page_weight:
+    check: transfer_bytes
+    max: 512000            # 500 KB for the whole landing page
+    severity: medium
+
+  build_time:
+    check: workflow_duration_seconds
+    workflow: verify.yml
+    max: 180
+    severity: low
+
+on_breach:
+  create_issue: true
+  labels: [intent, control-band]
+  assign: bigarobas
+  notify_slack: true
