@@ -1,0 +1,8 @@
+node_modules/
+site/dist/
+site/.astro/
+.verify/
+*.log
+.env
+.env.*
+.claude/settings.local.json

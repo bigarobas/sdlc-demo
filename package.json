@@ -1,0 +1,19 @@
+{
+  "name": "sdlc-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm --prefix site run dev",
+    "build": "npm --prefix site run build",
+    "verify": "node scripts/verify.mjs",
+    "verify:preview": "node scripts/verify.mjs",
+    "check:evals": "node evals/run.mjs"
+  },
+  "devDependencies": {
+    "linkinator": "^6.1.2"
+  }
+}
