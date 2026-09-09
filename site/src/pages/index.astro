@@ -1,15 +1,45 @@
 ---
+import Base from '../layouts/Base.astro';
+
+// Sections are markdown files, loaded by filename order. Using import.meta.glob rather than
+// a content collection keeps this working across Astro majors, where the collections API has
+// moved more than once — and it means adding a section is adding one file, which is exactly
+// the shape of change an agent handles well.
+const modules = import.meta.glob('../content/sections/*.md', { eager: true });
+
+const sections = Object.entries(modules)
+  .map(([path, mod]: [string, any]) => ({
+    path,
+    slug: mod.frontmatter.slug,
+    title: mod.frontmatter.title,
+    stage: mod.frontmatter.stage,
+    Content: mod.Content,
+  }))
+  .sort((a, b) => a.path.localeCompare(b.path));
+
+const navItems = sections.map(({ slug, title }) => ({ slug, title }));
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<Base
+  title="The AI-native SDLC, built by one"
+  description="A static site explaining the AI-native SDLC, produced by the SDLC it describes."
+  sections={navItems}
+>
+  {sections.map(({ slug, title, stage, Content }, i) => (
+    <section class="section" id={slug}>
+      <div class="section-index">
+        {String(i + 1).padStart(2, '0')}
+        {stage ? ` · ${stage}` : ''}
+      </div>
+      <h1>{title}</h1>
+      <Content />
+    </section>
+  ))}
+
+  <footer>
+    <p>
+      Built with the process it describes. Every artifact, hook and workflow referenced here is in{' '}
+      <a href="https://github.com/bigarobas/sdlc-demo">bigarobas/sdlc-demo</a>.
+    </p>
+  </footer>
+</Base>

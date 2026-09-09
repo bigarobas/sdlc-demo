@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+
+const { title, description, sections } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <!-- Never an absolute path: both deploy targets live in a subfolder. -->
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <div class="layout">
+      <nav class="nav" aria-label="Sections">
+        <div class="nav-title">AI-native SDLC</div>
+        <ol>
+          {sections.map((s: { slug: string; title: string }) => (
+            <li>
+              <a href={`#${s.slug}`}>{s.title}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <main>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
