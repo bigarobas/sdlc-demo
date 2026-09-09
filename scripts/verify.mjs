@@ -6,7 +6,7 @@
 //
 // Steps: build -> serve with the real `base` -> crawl every link -> stop -> evals.
 
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { LinkChecker } from 'linkinator';
 
 // Accept the base with or without slashes and normalise to `/x/y/`.
@@ -80,12 +80,19 @@ run(['--prefix', 'site', 'run', 'build', '--', '--base', BASE], 'build');
 
 console.log(`\n▶ serve + link check`);
 stopPreview(); // in case a previous run left one behind
-// `astro preview` takes `base` from astro.config.mjs, not from the build output,
-// so it must be told the same base the build just used or it serves the wrong path.
-run(
+// `astro preview` takes `base` from astro.config.mjs, not from the build output, so it must
+// be told the same base the build just used or it serves the wrong path.
+//
+// It must also NOT be started with a blocking spawnSync: on Windows it daemonises and
+// returns, but on Linux it stays in the foreground, so a blocking call never comes back and
+// the CI job hangs until its timeout. Spawn it asynchronously and handle both shapes —
+// kill the child for the foreground case, `astro preview stop` for the daemon.
+const server = spawn(
+  npm,
   ['--prefix', 'site', 'run', 'preview', '--', '--port', String(PORT), '--base', BASE],
-  'preview start',
+  { stdio: 'inherit', shell: process.platform === 'win32' },
 );
+server.on('error', (err) => console.error(`  could not start preview: ${err.message}`));
 
 let failed = false;
 try {
@@ -107,6 +114,7 @@ try {
   console.error(`✗ ${err.message}`);
   failed = true;
 } finally {
+  server.kill();
   stopPreview();
 }
 
@@ -116,3 +124,8 @@ console.log(`\n▶ evals`);
 run(['run', 'check:evals'], 'evals');
 
 console.log('\n✓ verify passed');
+
+// Exit explicitly. Killing the npm wrapper does not always take the astro child with it,
+// and a surviving child handle keeps the event loop alive — which in CI looks identical to
+// the hang this script was just fixed to avoid.
+process.exit(0);
