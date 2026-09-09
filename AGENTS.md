@@ -86,6 +86,10 @@ labelled as shells.
 - **`astro preview` daemonises on Windows but runs in the foreground on Linux.** A blocking
   `spawnSync` therefore returns on a laptop and hangs forever in CI. `scripts/verify.mjs`
   spawns it asynchronously and exits explicitly.
+- **Line endings made `prettier --check` disagree with itself** — CRLF on the Windows working
+  tree, LF in CI, so the same commit was clean on the runner and dirty on the laptop.
+  `.gitattributes` now forces `eol=lf` everywhere. Do not add `endOfLine: "auto"` instead;
+  that hides the divergence rather than removing it.
 - **`site/CLAUDE.md` is a symlink to `site/AGENTS.md`.** Astro scaffolds it that way. Writing
   to one writes through to the other, so edit `site/AGENTS.md` and leave the link alone.
   Overwriting it once left `site/AGENTS.md` importing itself.

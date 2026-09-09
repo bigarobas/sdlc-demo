@@ -11,3 +11,8 @@ Human edits do not appear here — they appear in `git log` under a real name.
 | 2026-09-09 20:17:01 | 85d23673 | Edit | `scripts/verify.mjs` |
 | 2026-09-09 20:18:07 | 85d23673 | Edit | `scripts/verify.mjs` |
 | 2026-09-09 20:26:19 | 85d23673 | Edit | `AGENTS.md` |
+| 2026-09-09 20:49:25 | 85d23673 | Write | `proposals/.github/workflows/deploy.yml` |
+| 2026-09-09 20:49:40 | 85d23673 | Write | `proposals/.github/workflows/preview.yml` |
+| 2026-09-09 20:50:22 | 85d23673 | Edit | `proposals/.github/workflows/deploy.yml` |
+| 2026-09-09 20:50:26 | 85d23673 | Edit | `proposals/.github/workflows/deploy.yml` |
+| 2026-09-09 20:51:52 | 85d23673 | Edit | `AGENTS.md` |

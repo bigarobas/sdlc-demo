@@ -1,0 +1,77 @@
+name: Preview
+
+# STAGE 5 (Deploy), the reviewable half — every pull request gets a live URL.
+#
+# A reviewer who can click the change is a reviewer who catches what a diff hides. This is
+# the cheap half of the deploy story: no credentials, no gate, no agent, no tokens.
+#
+# ONE rolling preview at a fixed `/preview/` path, not one per PR. Per-PR paths would mean a
+# different Astro `base` per pull request, which is the exact class of bug that has already
+# broken this site once. A single fixed base is a single thing that can be wrong, and CI
+# checks it on every run.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+permissions:
+  contents: write # to push to the gh-pages branch
+  pull-requests: write # to comment the URL
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix site
+
+      - name: Build for preview
+        run: >-
+          npm --prefix site run build --
+          --site https://bigarobas.github.io
+          --base /sdlc-demo/preview/
+
+      - name: Publish to gh-pages/preview
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site/dist
+          destination_dir: preview
+          keep_files: false
+          commit_message: 'preview: PR #${{ github.event.pull_request.number }} (${{ github.sha }})'
+
+      - name: Comment the preview URL
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const url = 'https://bigarobas.github.io/sdlc-demo/preview/';
+            const marker = '<!-- preview-url -->';
+            const body = `${marker}\n**Preview:** ${url}\n\n` +
+              `Built from ${context.sha.slice(0, 7)}. This is a single rolling preview — ` +
+              `the most recently updated pull request wins. Give it a moment after the ` +
+              `Pages deploy finishes.`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const mine = comments.data.find((c) => c.body?.includes(marker));
+
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

@@ -1,0 +1,92 @@
+name: Deploy
+
+# STAGE 5 (Deploy) — the production gate.  [spec D6]
+#
+# The build job has no credentials. The deploy job has them, and cannot start until a named
+# human approves it, because the `production` environment carries a required-reviewer rule.
+# The FTP secrets are environment secrets, not repository secrets: they do not exist for any
+# other job in this repository, including every agent job.
+#
+# That asymmetry is the whole governance argument. The agent can do everything up to this
+# line — write code, open a PR, pass CI — and cannot cross it. Not because it is instructed
+# not to, but because the credential is not there.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix site
+
+      # Verify before building for production. A deploy that skips the check is a deploy
+      # that can put a broken base path on the live site.
+      - name: Verify
+        run: npm run verify
+
+      - name: Build for production
+        run: npm --prefix site run build -- --site https://rashid.fr --base /sdlc/
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: site/dist/
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Job-level, deliberately: a step's own `env:` block is NOT visible to that step's `if`,
+    # so guarding the Slack step on a step-level variable silently evaluates to empty and the
+    # notification never fires. Job-level env is visible.
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    # This line is the gate. The job parks here until a required reviewer approves it.
+    environment:
+      name: production
+      url: https://rashid.fr/sdlc/
+
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: dist
+
+      - name: Publish over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: /www/sdlc/
+          # Keeps a manifest on the host so later deploys transfer only what changed.
+          state-name: .ftp-deploy-sync-state.json
+
+      - name: Notify Slack
+        if: ${{ success() && env.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data '{"text":"Deployed to https://rashid.fr/sdlc/ — approved by ${{ github.actor }}, commit ${{ github.sha }}"}' \
+            "$SLACK_WEBHOOK_URL"

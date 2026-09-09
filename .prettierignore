@@ -20,3 +20,4 @@ site/CLAUDE.md
 # AGENTS.md forbids. Excluding them keeps the human-install lane the only way in.
 .claude/settings.json
 .claude/hooks/
+.github/workflows/

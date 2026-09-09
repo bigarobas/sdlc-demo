@@ -1,0 +1,16 @@
+# Keep the working tree LF on every platform.
+#
+# Git's default on Windows checks files out with CRLF, while prettier defaults to
+# endOfLine: "lf". The result is a formatting check that fails on a Windows laptop and
+# passes on an ubuntu runner, for files nobody edited — local and CI disagreeing about
+# whether the repository is clean.
+#
+# This is the fourth Windows-vs-Linux divergence in this project. See AGENTS.md.
+* text=auto eol=lf
+
+# Never touch line endings in binaries.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
