@@ -21,3 +21,5 @@ Human edits do not appear here — they appear in `git log` under a real name.
 | 2026-09-09 21:05:37 | 85d23673 | Write | `site/src/pages/index.astro` |
 | 2026-09-09 21:07:38 | 85d23673 | Edit | `site/src/styles/global.css` |
 | 2026-09-09 21:09:52 | 85d23673 | Edit | `site/src/styles/global.css` |
+| 2026-09-09 21:21:52 | 85d23673 | Edit | `proposals/.github/workflows/claude-code-review.yml` |
+| 2026-09-09 21:22:18 | 85d23673 | Write | `proposals/.github/workflows/claude-code-review.yml` |

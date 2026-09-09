@@ -7,8 +7,23 @@ name: Claude Code Review
 # as a bill.
 #
 # `synchronize` is deliberately NOT a trigger. With it, every push to a PR branch starts a
-# fresh review: a five-commit branch costs five runs. The review fires once when the PR is
-# ready, and a human can ask for another by commenting `@claude review this again`.
+# fresh review: a five-commit branch costs five runs. The review fires once when the pull
+# request is ready, and a human can ask for another by commenting `@claude review this again`.
+#
+# MEASURED, not guessed. The first real run hit `error_max_turns` at `--max-turns 8`: nine
+# turns, 4m45s, 16 permission denials, and no review posted. Two causes, both fixed here:
+#
+#  1. Eight turns is not a review, it is an interruption. Any real diff needs several file
+#     reads before it can say anything useful. 25 is the new ceiling, with the job timeout as
+#     the real hard bound. A limit that stops the work halfway costs full price for nothing,
+#     which is the worst trade available.
+#  2. The allowlist held only the inline-comment tool, so the agent was refused every time it
+#     tried to read a file — sixteen times. The read-only tools are now allowed explicitly.
+#     Nothing here can write: reviewing is not editing.
+#
+# COST: that failed run alone was worth roughly $1.80 of quota-equivalent. Reviews are the
+# most expensive thing in this repository. Open pull requests as DRAFTS while iterating — the
+# review skips drafts — and mark them ready when a review is actually wanted.
 
 on:
   pull_request:
@@ -21,7 +36,7 @@ concurrency:
 jobs:
   claude-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
       pull-requests: read
@@ -43,6 +58,6 @@ jobs:
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
           claude_args: >-
-            --max-turns 8
+            --max-turns 25
             --model claude-sonnet-5
-            --allowedTools "mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment"
