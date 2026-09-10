@@ -5,13 +5,16 @@
 // attribute under our control — which matters most for theming, since an inline SVG can
 // inherit the page's colours through CSS variables and a rasterised image cannot.
 //
-// Colour carries meaning, not decoration: pink marks a human decision, and nothing else.
+// Two rules the drawing obeys:
+//   1. Pink means a human decision or a human gate. Nothing else is pink except `$`.
+//   2. Every kind of thing gets its own SHAPE, not just its own colour — a diagram read from
+//      the back of a room, or by someone who cannot separate these hues, still has to work.
 
 const LANES = [
-  { id: 'human', label: 'Human', height: 104 },
-  { id: 'local', label: 'Local session', height: 196 },
-  { id: 'github', label: 'GitHub Actions', height: 268 },
-  { id: 'external', label: 'External', height: 84 },
+  { id: 'human', label: 'Human' },
+  { id: 'local', label: 'Local session' },
+  { id: 'github', label: 'GitHub Actions' },
+  { id: 'external', label: 'External' },
 ];
 
 const STAGES = [
@@ -28,44 +31,53 @@ const COL_W = 176;
 const COL_GAP = 10;
 const HEAD_H = 52;
 const PAD = 16;
-const BOX_H = 46;
-const BOX_GAP = 7;
+const BOX_GAP = 8;
+const LANE_TOP = 26;
+const LEGEND_H = 96;
 
 const colX = (n) => GUTTER + (n - 1) * (COL_W + COL_GAP);
+const boxHeight = (kind) => (kind === 'environment' ? 36 : 60);
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// Cheap word wrap. Good enough for short labels at a known font size.
-function wrap(text, max) {
-  const words = String(text).split(/\s+/);
-  const lines = [];
-  let line = '';
-  for (const w of words) {
-    if ((line + ' ' + w).trim().length > max && line) {
-      lines.push(line);
-      line = w;
-    } else {
-      line = (line + ' ' + w).trim();
-    }
+function truncate(s, max) {
+  const t = String(s ?? '');
+  return t.length > max ? t.slice(0, max - 1) + '…' : t;
+}
+
+// --- one distinct silhouette per kind -----------------------------------------------------
+// Drawn as paths rather than picked from a font, so nothing depends on which glyphs the
+// viewer happens to have installed.
+function glyph(kind, x, y) {
+  const g = (d, cls = '') => `<path d="${d}" class="glyph ${cls}"/>`;
+  switch (kind) {
+    case 'skill': // a page with a folded corner — knowledge, written down
+      return g(`M${x} ${y} h7 l3 3 v8 h-10 z M${x + 7} ${y} v3 h3`);
+    case 'subagent': // head and shoulders — something that acts on your behalf
+      return (
+        `<circle cx="${x + 5}" cy="${y + 3.5}" r="2.6" class="glyph"/>` +
+        g(`M${x + 0.5} ${y + 11} a4.5 4.5 0 0 1 9 0`)
+      );
+    case 'workflow': // a play triangle in a frame — something that runs, unattended
+      return g(`M${x} ${y} h11 v11 h-11 z M${x + 4} ${y + 3} l4.5 2.5 l-4.5 2.5 z`);
+    case 'environment': // a padlock — a place a credential lives
+      return g(`M${x + 1} ${y + 5} h9 v7 h-9 z M${x + 2.5} ${y + 5} v-2 a3 3 0 0 1 6 0 v2`);
+    case 'service': // a cloud — somebody else's computer
+      return g(
+        `M${x + 1} ${y + 10} a3 3 0 0 1 0.6 -5.9 a3.6 3.6 0 0 1 6.9 -0.6 a2.8 2.8 0 0 1 1.5 6.5 z`,
+      );
+    default:
+      return '';
   }
-  if (line) lines.push(line);
-  return lines;
 }
 
 export function renderSvg({ nodes, annotations }) {
   const ann = annotations;
-  const laneY = {};
-  let y = HEAD_H;
-  for (const lane of LANES) {
-    laneY[lane.id] = y;
-    y += lane.height;
-  }
-  const totalH = y + 74; // room for the loop-back arrow and legend
-  const totalW = colX(6) + COL_W + PAD;
 
-  // Bucket nodes into (lane, stage) cells, hooks excluded — they get one grouped box.
+  // Bucket into (lane, stage). Hooks are excluded — they get one band, because five
+  // near-identical boxes would take five times the space to say the same thing.
   const cells = new Map();
   const hooks = [];
   for (const n of nodes) {
@@ -81,14 +93,43 @@ export function renderSvg({ nodes, annotations }) {
     cells.get(key).push({ node: n, a });
   }
 
+  const decisions = ann._decisions ?? [];
+
+  // --- lane heights, measured rather than guessed ---
+  const laneHeight = {};
+  for (const lane of LANES) {
+    let tallest = 0;
+    for (const s of STAGES) {
+      const items = cells.get(`${lane.id}:${s.n}`) ?? [];
+      const h = items.reduce((sum, it) => sum + boxHeight(it.node.kind) + BOX_GAP, 0);
+      tallest = Math.max(tallest, h);
+    }
+    if (lane.id === 'human') {
+      const most = Math.max(...STAGES.map((s) => decisions.filter((d) => d.stage === s.n).length));
+      tallest = most * 40;
+    }
+    if (lane.id === 'local') tallest += 48; // the hooks band sits under the boxes
+    laneHeight[lane.id] = Math.max(tallest + LANE_TOP + 10, 72);
+  }
+
+  const laneY = {};
+  let y = HEAD_H;
+  for (const lane of LANES) {
+    laneY[lane.id] = y;
+    y += laneHeight[lane.id];
+  }
+  const loopY = y + 26;
+  const legendY = loopY + 22;
+  const totalH = legendY + LEGEND_H;
+  const totalW = colX(6) + COL_W + PAD;
+
   const out = [];
 
   // --- lane bands ---
   LANES.forEach((lane, i) => {
     out.push(
-      `<rect x="0" y="${laneY[lane.id]}" width="${totalW}" height="${lane.height}" ` +
-        `class="lane ${i % 2 ? 'lane-alt' : ''}"/>`,
-      `<text x="${PAD}" y="${laneY[lane.id] + 20}" class="lane-label">${esc(lane.label)}</text>`,
+      `<rect x="0" y="${laneY[lane.id]}" width="${totalW}" height="${laneHeight[lane.id]}" class="lane ${i % 2 ? 'lane-alt' : ''}"/>`,
+      `<text x="${PAD}" y="${laneY[lane.id] + 18}" class="lane-label">${esc(lane.label)}</text>`,
     );
   });
 
@@ -98,47 +139,52 @@ export function renderSvg({ nodes, annotations }) {
     out.push(
       `<text x="${x}" y="20" class="stage-n">${s.n}</text>`,
       `<text x="${x + 16}" y="20" class="stage-label">${esc(s.label)}</text>`,
-      `<line x1="${x - 5}" y1="30" x2="${x - 5}" y2="${totalH - 66}" class="col-rule"/>`,
+      `<line x1="${x - 5}" y1="30" x2="${x - 5}" y2="${y}" class="col-rule"/>`,
     );
   }
 
-  // --- node boxes ---
+  // --- nodes ---
   for (const [key, items] of cells) {
     const [lane, stage] = key.split(':');
-    let ny = laneY[lane] + 28;
+    let ny = laneY[lane] + LANE_TOP;
     for (const { node, a } of items) {
       const x = colX(Number(stage));
-      const cls = [
-        'box',
-        `kind-${node.kind}`,
-        a.gate ? 'gate' : '',
-        a.cost === 'free' ? 'free' : '',
-      ]
-        .filter(Boolean)
-        .join(' ');
+      const h = boxHeight(node.kind);
+      const cls = ['box', `kind-${node.kind}`, a.gate ? 'gate' : ''].filter(Boolean).join(' ');
+      const rx = node.kind === 'subagent' ? 14 : node.kind === 'skill' ? 2 : 5;
+
       out.push(`<g class="${cls}">`);
-      out.push(`<rect x="${x}" y="${ny}" width="${COL_W}" height="${BOX_H}" rx="5"/>`);
+      out.push(`<rect x="${x}" y="${ny}" width="${COL_W}" height="${h}" rx="${rx}"/>`);
+      out.push(glyph(node.kind, x + 10, ny + 9));
       out.push(
-        `<text x="${x + 9}" y="${ny + 17}" class="box-label">${esc(node.label.replace(/\n/g, ' '))}</text>`,
+        `<text x="${x + 28}" y="${ny + 17}" class="box-label">${esc(node.label.replace(/\n/g, ' '))}</text>`,
       );
-      const noteLines = wrap(a.note ?? '', 32).slice(0, 2);
-      noteLines.forEach((l, i) =>
-        out.push(`<text x="${x + 9}" y="${ny + 30 + i * 11}" class="box-note">${esc(l)}</text>`),
-      );
+
+      const trigger = node.triggerText ?? a.trigger;
+      if (trigger) {
+        out.push(
+          `<text x="${x + 10}" y="${ny + 32}" class="box-trigger">▸ ${esc(truncate(trigger, 30))}</text>`,
+        );
+      }
+      if (a.note && h > 40) {
+        out.push(
+          `<text x="${x + 10}" y="${ny + 46}" class="box-note">${esc(truncate(a.note, 34))}</text>`,
+        );
+      }
       if (a.cost === 'agent') {
-        out.push(`<circle cx="${x + COL_W - 11}" cy="${ny + 12}" r="3.5" class="dot-agent"/>`);
+        out.push(`<text x="${x + COL_W - 14}" y="${ny + 18}" class="cost">$</text>`);
       }
       out.push(`</g>`);
-      ny += BOX_H + BOX_GAP;
+      ny += h + BOX_GAP;
     }
   }
 
   // --- human decisions ---
   const decSeen = {};
-  for (const d of ann._decisions ?? []) {
+  for (const d of decisions) {
     const x = colX(d.stage);
     const i = (decSeen[d.stage] = (decSeen[d.stage] ?? -1) + 1);
-    const dy = laneY.human + 24 + i * 38;
+    const dy = laneY.human + LANE_TOP - 6 + i * 40;
     out.push(
       `<g class="decision">`,
       `<rect x="${x}" y="${dy}" width="${COL_W}" height="32" rx="16"/>`,
@@ -147,59 +193,102 @@ export function renderSvg({ nodes, annotations }) {
     );
   }
 
-  // --- hooks: one grouped box, because five separate ones would say less ---
-  const hooksY = laneY.local + 150;
+  // --- hooks: one band, spanning the stages a session actually passes through ---
+  const hooksY = laneY.local + laneHeight.local - 46;
   out.push(
     `<g class="hooks">`,
-    `<rect x="${colX(1)}" y="${hooksY}" width="${colX(4) + COL_W - colX(1)}" height="38" rx="5"/>`,
-    `<text x="${colX(1) + 10}" y="${hooksY + 16}" class="box-label">${hooks.length} hooks — deterministic, always on</text>`,
-    `<text x="${colX(1) + 10}" y="${hooksY + 30}" class="box-note">${esc(hooks.map((h) => h.node.label).join(' · '))}</text>`,
+    `<rect x="${colX(1)}" y="${hooksY}" width="${colX(5) + COL_W - colX(1)}" height="36" rx="5"/>`,
+    `<text x="${colX(1) + 10}" y="${hooksY + 15}" class="box-label">${hooks.length} hooks — deterministic, not negotiable</text>`,
+    `<text x="${colX(1) + 10}" y="${hooksY + 28}" class="box-trigger">▸ every Write, Edit and Bash call, before it runs · ${esc(hooks.map((h) => h.node.label).join(' · '))}</text>`,
     `</g>`,
   );
 
   // --- the loop back to Plan ---
-  const loopY = totalH - 52;
   out.push(
-    `<path d="M ${colX(6) + COL_W / 2} ${laneY.external + LANES[3].height - 4} ` +
-      `V ${loopY} H ${colX(1) + COL_W / 2} V ${laneY.human + 26 + 32}" class="loop"/>`,
-    `<text x="${(colX(1) + colX(6)) / 2}" y="${loopY - 7}" class="loop-label">` +
-      `a breach becomes the next intent — no tokens, no model</text>`,
+    `<path d="M ${colX(6) + COL_W / 2} ${laneY.external + laneHeight.external - 4} V ${loopY} H ${colX(1) + COL_W / 2} V ${laneY.human + LANE_TOP + 26}" class="loop"/>`,
+    `<text x="${(colX(1) + colX(6)) / 2}" y="${loopY - 6}" class="loop-label">a breach becomes the next intent — no tokens, no model</text>`,
+  );
+
+  // --- legend ---
+  const legend = [
+    ['skill', 'skill', 'knowledge applied as a constraint'],
+    ['subagent', 'subagent', 'its own context window'],
+    ['workflow', 'workflow', 'runs in CI, unattended'],
+    ['environment', 'environment', 'where a credential lives'],
+    ['service', 'external', "somebody else's computer"],
+  ];
+  out.push(
+    `<line x1="0" y1="${legendY - 8}" x2="${totalW}" y2="${legendY - 8}" class="col-rule"/>`,
+  );
+  legend.forEach(([kind, label, note], i) => {
+    const lx = PAD + i * 232;
+    out.push(
+      `<g class="box kind-${kind} legend-item">`,
+      `<rect x="${lx}" y="${legendY}" width="20" height="20" rx="${kind === 'subagent' ? 10 : kind === 'skill' ? 2 : 4}"/>`,
+      glyph(kind, lx + 4.5, legendY + 4),
+      `</g>`,
+      `<text x="${lx + 28}" y="${legendY + 10}" class="legend-label">${esc(label)}</text>`,
+      `<text x="${lx + 28}" y="${legendY + 21}" class="legend-note">${esc(note)}</text>`,
+    );
+  });
+  out.push(
+    `<g class="decision"><rect x="${PAD}" y="${legendY + 36}" width="20" height="20" rx="10"/></g>`,
+    `<text x="${PAD + 28}" y="${legendY + 46}" class="legend-label">human decision</text>`,
+    `<text x="${PAD + 28}" y="${legendY + 57}" class="legend-note">nothing moves past it unattended</text>`,
+    `<g class="box kind-environment gate"><rect x="${PAD + 232}" y="${legendY + 36}" width="20" height="20" rx="4"/></g>`,
+    `<text x="${PAD + 260}" y="${legendY + 46}" class="legend-label">the production gate</text>`,
+    `<text x="${PAD + 260}" y="${legendY + 57}" class="legend-note">the credential exists only past this point</text>`,
+    `<text x="${PAD + 464}" y="${legendY + 50}" class="cost">$</text>`,
+    `<text x="${PAD + 492}" y="${legendY + 46}" class="legend-label">costs Claude quota</text>`,
+    `<text x="${PAD + 492}" y="${legendY + 57}" class="legend-note">everything unmarked is free</text>`,
+    `<text x="${PAD + 696}" y="${legendY + 46}" class="legend-label">▸ what triggers it</text>`,
+    `<text x="${PAD + 696}" y="${legendY + 57}" class="legend-note">derived from the repository, not written by hand</text>`,
   );
 
   const style = `
   :root{
-    --dv-pink:#e20074; --dv-navy:#0a0528; --dv-light:#f0f0f5;
-    --dv-blue:#315aa1; --dv-blue-dark:#2d3555;
+    --dv-pink:#e20074; --dv-navy:#0a0528; --dv-blue:#315aa1; --dv-blue-dark:#2d3555;
     --d-bg:#ffffff; --d-lane:#fafafc; --d-lane-alt:#f4f4f8;
     --d-line:#dcdce6; --d-text:#0a0528; --d-muted:#5f5f72; --d-box:#ffffff;
   }
   @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
     --d-bg:#161513; --d-lane:#1c1b19; --d-lane-alt:#201f1c;
     --d-line:#37342e; --d-text:#eae6df; --d-muted:#a49c8f; --d-box:#232019;
-    --dv-blue:#6f9bdd; --dv-pink:#ff5fae;
+    --dv-blue:#6f9bdd; --dv-blue-dark:#8fa4c8; --dv-pink:#ff5fae;
   }}
   text{font-family:ui-sans-serif,system-ui,'Segoe UI',Roboto,sans-serif;fill:var(--d-text)}
   .lane{fill:var(--d-lane)} .lane-alt{fill:var(--d-lane-alt)}
-  .lane-label{font-size:11px;font-weight:600;fill:var(--d-muted);letter-spacing:.06em;text-transform:uppercase}
+  .lane-label{font-size:11px;font-weight:700;fill:var(--d-muted);letter-spacing:.07em;text-transform:uppercase}
   .stage-n{font-size:13px;font-weight:700;fill:var(--dv-pink);font-family:ui-monospace,monospace}
   .stage-label{font-size:13px;font-weight:600}
   .col-rule{stroke:var(--d-line);stroke-width:1;stroke-dasharray:2 4}
   .box rect{fill:var(--d-box);stroke:var(--d-line);stroke-width:1}
   .box-label{font-size:11.5px;font-weight:600}
+  .box-trigger{font-size:9px;fill:var(--dv-blue);font-family:ui-monospace,monospace}
   .box-note{font-size:9.5px;fill:var(--d-muted)}
+  .glyph{fill:none;stroke:var(--d-muted);stroke-width:1.1;stroke-linejoin:round}
+  .kind-skill rect{stroke:var(--dv-navy);stroke-width:1;}
+  .kind-skill .glyph{stroke:var(--dv-navy)}
+  .kind-subagent rect{stroke:var(--dv-blue-dark);stroke-width:1.4}
+  .kind-subagent .glyph{stroke:var(--dv-blue-dark)}
   .kind-workflow rect{stroke:var(--dv-blue)}
+  .kind-workflow .glyph{stroke:var(--dv-blue)}
   .kind-environment rect{stroke:var(--dv-blue-dark);stroke-dasharray:4 3}
-  .gate rect{stroke:var(--dv-pink);stroke-width:2}
-  .kind-service rect{stroke:var(--d-line);stroke-dasharray:3 3}
-  .dot-agent{fill:var(--dv-pink)}
+  .kind-environment .glyph{stroke:var(--dv-blue-dark)}
+  .kind-service rect{stroke:var(--d-muted);stroke-dasharray:2 3}
+  .gate rect{stroke:var(--dv-pink);stroke-width:2;stroke-dasharray:none}
+  .gate .glyph{stroke:var(--dv-pink)}
+  .cost{font-size:13px;font-weight:700;fill:var(--dv-pink);font-family:ui-monospace,monospace}
   .decision rect{fill:none;stroke:var(--dv-pink);stroke-width:1.5}
   .decision-label{font-size:11px;font-weight:600;fill:var(--dv-pink);text-anchor:middle}
   .hooks rect{fill:none;stroke:var(--d-muted);stroke-width:1;stroke-dasharray:5 4}
   .loop{fill:none;stroke:var(--dv-pink);stroke-width:1.5;stroke-dasharray:5 4;marker-end:url(#arrow)}
   .loop-label{font-size:10px;fill:var(--dv-pink);text-anchor:middle;font-style:italic}
+  .legend-label{font-size:10.5px;font-weight:600}
+  .legend-note{font-size:9.5px;fill:var(--d-muted)}
   `;
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" role="img" aria-label="The sdlc-demo pipeline: six SDLC stages across four tiers">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalW} ${totalH}" role="img" aria-label="The sdlc-demo pipeline: six SDLC stages across four tiers, with human decisions marked">
 <style>${style}</style>
 <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--dv-pink)"/></marker></defs>
 <rect width="${totalW}" height="${totalH}" fill="var(--d-bg)"/>

@@ -35,6 +35,35 @@ export function deriveModel() {
 
     const environments = jobs.map(([, j]) => j.environment?.name ?? j.environment).filter(Boolean);
 
+    // GitHub's trigger names are precise and unreadable. Map them to what a person would
+    // say, and dedupe — four mention-shaped triggers are one idea, not four.
+    // The event alone is not enough: `issues` means something different depending on its
+    // types. `[labeled]` is a maintainer triaging; `[opened]` is anyone on the internet.
+    // Collapsing both to "issue" would state the security model incorrectly.
+    const on = doc.true ?? doc.on ?? {};
+    const word = (t) => {
+      const types = on[t]?.types ?? [];
+      switch (t) {
+        case 'push':
+          return 'push to main';
+        case 'pull_request':
+          return 'pull request';
+        case 'schedule':
+          return 'cron';
+        case 'workflow_dispatch':
+          return 'manual';
+        case 'issues':
+          return types.includes('labeled') ? 'issue labelled' : 'issue opened';
+        case 'issue_comment':
+        case 'pull_request_review_comment':
+        case 'pull_request_review':
+          return '@claude mention';
+        default:
+          return t;
+      }
+    };
+    const triggerText = [...new Set(triggers.map(word))].join(' · ');
+
     const body = readFileSync(join(WORKFLOWS, file), 'utf8');
     const secrets = [...new Set([...body.matchAll(/secrets\.([A-Z_]+)/g)].map((m) => m[1]))].filter(
       (s) => s !== 'GITHUB_TOKEN',
@@ -47,6 +76,7 @@ export function deriveModel() {
       label: doc.name ?? file,
       file: `${WORKFLOWS}/${file}`,
       triggers,
+      triggerText,
       environments,
       secrets,
       usesAgent,
@@ -80,6 +110,7 @@ export function deriveModel() {
             label: script,
             event,
             matcher: group.matcher,
+            triggerText: `${event}(${group.matcher ?? '*'})`,
             file: `${HOOKS}/${script}.mjs`,
           });
         }

@@ -13,19 +13,19 @@
     "lane": "github",
     "stage": 1,
     "cost": "agent",
-    "note": "issue labelled `intent` -> drafts intent.md, opens a PR"
+    "note": "drafts intent.md, opens a PR"
   },
   "wf:claude": {
     "lane": "github",
     "stage": 3,
     "cost": "agent",
-    "note": "@claude mentions — the steering wheel"
+    "note": "the steering wheel"
   },
   "wf:verify": {
     "lane": "github",
     "stage": 4,
     "cost": "free",
-    "note": "build, links, evals, formatting — on every push"
+    "note": "build · links · evals · format"
   },
   "wf:preview": {
     "lane": "github",
@@ -37,7 +37,7 @@
     "lane": "github",
     "stage": 5,
     "cost": "agent",
-    "note": "reviews the diff, comments findings"
+    "note": "reviews the diff, comments"
   },
   "wf:deploy": {
     "lane": "github",
@@ -49,55 +49,63 @@
     "lane": "github",
     "stage": 6,
     "cost": "free",
-    "note": "cron; a breach opens an issue"
+    "note": "a breach opens an issue"
   },
   "env:preview": {
     "lane": "github",
     "stage": 5,
     "gate": false,
-    "note": "no approval; credential scoped to /sdlc-preview/"
+    "note": "scoped to /sdlc-preview/",
+    "trigger": "preview.yml — no approval"
   },
   "env:production": {
     "lane": "github",
     "stage": 5,
     "gate": true,
-    "note": "required reviewer; the credential exists only past this point"
+    "note": "required reviewer",
+    "trigger": "deploy.yml — waits for a human"
   },
   "skill:intent": {
     "lane": "local",
     "stage": 1,
     "cost": "interactive",
-    "note": "problem, not solution"
+    "note": "problem, not solution",
+    "trigger": "/intent, or the intent agent"
   },
   "skill:spec": {
     "lane": "local",
     "stage": 2,
     "cost": "interactive",
-    "note": "numbered decisions and their reasons"
+    "note": "numbered decisions, with reasons",
+    "trigger": "/spec, after an intent"
   },
   "skill:house-style": {
     "lane": "local",
     "stage": 3,
     "cost": "interactive",
-    "note": "design constraints, applied not retyped"
+    "note": "design constraints, applied",
+    "trigger": "auto — any edit under site/"
   },
   "skill:ship": {
     "lane": "local",
     "stage": 5,
     "cost": "interactive",
-    "note": "PR body, verification, review focus"
+    "note": "PR body, verification, focus",
+    "trigger": "/ship, once verify passes"
   },
   "agent:simplifier": {
     "lane": "local",
     "stage": 3,
     "cost": "interactive",
-    "note": "reduction pass, no behaviour change"
+    "note": "reduces; no behaviour change",
+    "trigger": "asked, before opening a PR"
   },
   "agent:verifier": {
     "lane": "local",
     "stage": 4,
     "cost": "interactive",
-    "note": "runs verify, reports a verdict only"
+    "note": "reports a verdict only",
+    "trigger": "asked, before claiming done"
   },
   "hook:protect-guardrails": {
     "lane": "local",
@@ -132,17 +140,20 @@
   "svc:claude": {
     "lane": "external",
     "stage": 3,
-    "note": "Pro quota — CI runs bill the same weekly limit"
+    "note": "CI bills the same weekly quota",
+    "trigger": "every agent run, local and CI"
   },
   "svc:ftp": {
     "lane": "external",
     "stage": 5,
-    "note": "two accounts: one chrooted to preview, one to production"
+    "note": "two accounts, each chrooted",
+    "trigger": "preview and deploy jobs only"
   },
   "svc:slack": {
     "lane": "external",
     "stage": 6,
-    "note": "notified on deploy and on breach"
+    "note": "notified, never asked",
+    "trigger": "deploy done · band breached"
   },
   "_decisions": [
     {
