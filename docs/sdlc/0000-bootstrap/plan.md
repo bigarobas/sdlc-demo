@@ -67,7 +67,7 @@ npm create astro@latest site -- --template minimal --typescript strict --no-git
 
 2. **`astro.config.mjs` reads `site` and `base` from env** so one codebase produces the
    production build (`https://rashid.fr` + `/sdlc/`) and the preview build
-   (`https://<user>.github.io` + `/sdlc-demo/preview/`). See spec §9.
+   (`https://rashid.fr` + `/sdlc-preview/`). See spec §9.
 
    Layout is **long-scroll with a sticky section nav** — no keyboard deck navigation.
 

@@ -84,9 +84,25 @@ jobs:
           # Keeps a manifest on the host so later deploys transfer only what changed.
           state-name: .ftp-deploy-sync-state.json
 
+      # A notification is not a deployment. This step reports what Slack said and never
+      # changes the outcome of the job:
+      #
+      #   - A revoked or mistyped webhook returns HTTP 404, and plain `curl` exits 0 on an
+      #     HTTP error, so the step would go green having sent nothing. Checking the status
+      #     code turns that silent no-op into a visible warning.
+      #   - A DNS or network failure makes curl exit non-zero, which would fail the job and
+      #     mark a deployment red *after the files were already uploaded successfully*.
+      #     `|| echo 000` keeps that from misreporting a good release.
       - name: Notify Slack
         if: ${{ success() && env.SLACK_WEBHOOK_URL != '' }}
         run: |
-          curl -sS -X POST -H 'Content-type: application/json' \
-            --data '{"text":"Deployed to https://rashid.fr/sdlc/ — approved by ${{ github.actor }}, commit ${{ github.sha }}"}' \
-            "$SLACK_WEBHOOK_URL"
+          payload=$(printf '{"text":"Deployed to https://rashid.fr/sdlc/ — approved by %s, commit %s"}' \
+            "${{ github.actor }}" "${{ github.sha }}")
+          code=$(curl -sS -o /tmp/slack.out -w '%{http_code}' \
+            -X POST -H 'Content-type: application/json' \
+            --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
+          if [ "$code" = "200" ]; then
+            echo "Slack notified."
+          else
+            echo "::warning::Slack notification failed (HTTP $code): $(cat /tmp/slack.out 2>/dev/null)"
+          fi
