@@ -20,7 +20,7 @@ bands:
 
   page_weight:
     check: transfer_bytes
-    max: 512000 # 500 KB for the whole landing page
+    max: 100 # 500 KB for the whole landing page
     severity: medium
 
   build_time:
