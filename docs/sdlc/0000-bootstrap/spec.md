@@ -11,8 +11,9 @@ Implements [intent.md](./intent.md).
 | D3 | **The Maintain → Plan closure is fully deterministic** — cron, `curl`, thresholds, `gh issue create`. Zero tokens. | The loop-closing moment is the most impressive part of the demo and the cheapest to build. It must never fail for quota reasons. |
 | D4 | **Three agent workflows, all hard-capped** — see §4 | CI bills the same Pro quota as the terminal. A runaway workflow the night before the talk eats the demo. Two of the three come free from `/install-github-app`. |
 | D5 | **The agent cannot edit its own guardrails** — a hook denies writes to `.github/workflows/**`, `.claude/settings.json`, `.claude/hooks/**` | This is the governance thesis in one sentence, and it demos in ten seconds. |
-| D6 | **Preview = rolling GitHub Pages; production = FTP behind a manual-approval Environment** | The production credential is the one thing the agent is structurally denied. That asymmetry *is* the production gate. |
+| D6 | ~~Preview = rolling GitHub Pages; production = FTP behind a manual-approval Environment~~ **Superseded 2026-09-10 by D8.** | The production credential is the one thing the agent is structurally denied. That asymmetry *is* the production gate. Still true; only the preview half changed. |
 | D7 | **Verification is one command**, `npm run verify` | Same command locally, in the `verifier` subagent, and in CI. An agent that can check its own work needs a single obvious way to do it. |
+| D8 | **Three tiers of credential reach**, all on owned infrastructure: agent and `verify` jobs hold no deploy credential; `preview` uses an FTP user chrooted to `/www/sdlc-preview/` with no approval gate; `production` uses a separate FTP user behind a required reviewer | Briefly making the repository private deleted the Pages site *and* silently disabled environment protection rules and environment secrets, which on GitHub Free are public-repository features. A gate that can vanish because of an unrelated settings change is not a gate. Moving both targets to the FTP host removes that dependency, and the scoped preview user makes the point sharper: environments are about **blast radius**, and approval is a separate axis on top. |
 
 ## 2. Repository layout
 
@@ -53,7 +54,7 @@ Implements [intent.md](./intent.md).
 │   ├── ISSUE_TEMPLATE/intent.yml
 │   └── workflows/
 │       ├── verify.yml            # deterministic: build + links + screenshots + evals
-│       ├── preview.yml           # PR -> GitHub Pages /preview/, comments the URL
+│       ├── preview.yml           # PR -> scoped FTP user -> /sdlc-preview/  [D8]
 │       ├── deploy.yml            # main -> `production` Environment gate -> FTP
 │       ├── claude.yml            # AGENT 1: @claude mentions — the steering wheel
 │       ├── agent-intent.yml      # AGENT 2: issue labelled `intent` -> intent.md PR
@@ -168,7 +169,7 @@ deterministic layer is where the ecosystems differ most.
 | Build | URL | `base` |
 |---|---|---|
 | Production | `https://rashid.fr/sdlc/` | `/sdlc/` |
-| Preview | `https://<user>.github.io/sdlc-demo/preview/` | `/sdlc-demo/preview/` |
+| Preview | `https://rashid.fr/sdlc-preview/` | `/sdlc-preview/` |
 
 Neither is root, which is a small mercy: a hardcoded absolute path breaks in *both*
 environments rather than only in production, on stage. `astro.config.mjs` reads `SITE` and

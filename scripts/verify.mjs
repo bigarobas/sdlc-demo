@@ -10,9 +10,9 @@ import { spawn, spawnSync } from 'node:child_process';
 import { LinkChecker } from 'linkinator';
 
 // Accept the base with or without slashes and normalise to `/x/y/`.
-// Git Bash on Windows rewrites a leading-slash value like `/sdlc-demo/preview/`
-// into `C:/Program Files/Git/sdlc-demo/preview/` before Node ever sees it, so the
-// documented way to pass it is slashless: VERIFY_BASE=sdlc-demo/preview
+// Git Bash on Windows rewrites a leading-slash value like `/sdlc-preview/`
+// into `C:/Program Files/Git/sdlc-preview/` before Node ever sees it, so the
+// documented way to pass it is slashless: VERIFY_BASE=sdlc-preview
 function normaliseBase(raw) {
   const cleaned = String(raw ?? '')
     .replace(/^[A-Za-z]:[/\\].*?(?=(?:sdlc|$))/, '') // undo MSYS path mangling

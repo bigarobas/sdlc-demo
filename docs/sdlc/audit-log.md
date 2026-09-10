@@ -23,3 +23,10 @@ Human edits do not appear here — they appear in `git log` under a real name.
 | 2026-09-09 21:09:52 | 85d23673 | Edit | `site/src/styles/global.css` |
 | 2026-09-09 21:21:52 | 85d23673 | Edit | `proposals/.github/workflows/claude-code-review.yml` |
 | 2026-09-09 21:22:18 | 85d23673 | Write | `proposals/.github/workflows/claude-code-review.yml` |
+| 2026-09-09 21:39:54 | 85d23673 | Edit | `../../../../../../.claude/projects/C--/memory/ai-native-sdlc-talk.md` |
+| 2026-09-09 21:51:12 | 85d23673 | Edit | `proposals/.github/workflows/deploy.yml` |
+| 2026-09-09 21:55:15 | 85d23673 | Edit | `AGENTS.md` |
+| 2026-09-10 12:39:33 | 85d23673 | Write | `proposals/.github/workflows/preview.yml` |
+| 2026-09-10 12:39:53 | 85d23673 | Edit | `proposals/.github/workflows/verify.yml` |
+| 2026-09-10 12:41:23 | 85d23673 | Edit | `docs/sdlc/0000-bootstrap/spec.md` |
+| 2026-09-10 12:43:07 | 85d23673 | Edit | `docs/sdlc/0000-bootstrap/spec.md` |

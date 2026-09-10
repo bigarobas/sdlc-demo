@@ -23,7 +23,7 @@ If the change could affect asset paths or routing, also run the other deploy tar
 both live in a subfolder and a base-path bug can hide in one of them:
 
 ```
-VERIFY_BASE=sdlc-demo/preview npm run verify
+VERIFY_BASE=sdlc-preview npm run verify
 ```
 
 ## What to report

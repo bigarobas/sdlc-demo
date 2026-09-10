@@ -8,12 +8,12 @@ this file rather than restating it.
 
 ## Commands
 
-| Command                                        | What it does                                                                        |
-| ---------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `npm run verify`                               | build → serve at the real base → crawl every link → run evals. **The one command.** |
-| `npm run dev`                                  | Astro dev server                                                                    |
-| `npm run build`                                | production build (`/sdlc/`)                                                         |
-| `VERIFY_BASE=sdlc-demo/preview npm run verify` | verify the preview target                                                           |
+| Command                                   | What it does                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------- |
+| `npm run verify`                          | build → serve at the real base → crawl every link → run evals. **The one command.** |
+| `npm run dev`                             | Astro dev server                                                                    |
+| `npm run build`                           | production build (`/sdlc/`)                                                         |
+| `VERIFY_BASE=sdlc-preview npm run verify` | verify the preview target                                                           |
 
 Never claim work is done without `npm run verify` passing. Prefer the `verifier` subagent so
 build output stays out of the implementation context.
@@ -70,14 +70,17 @@ labelled as shells.
 ## Mistakes already made here — do not repeat them
 
 - **Absolute asset paths break the build.** Both deploy targets live in a subfolder
-  (`/sdlc/` and `/sdlc-demo/preview/`), so `/favicon.svg` 404s. Use
+  (`/sdlc/` and `/sdlc-preview/`), so `/favicon.svg` 404s. Use
   `import.meta.env.BASE_URL`. The Astro template shipped with this bug.
 - **`astro preview` reads `base` from the config, not from the build output.** Pass `--base`
   to both or the link check happily validates the wrong path.
-- **Windows PowerShell 5.1 has no `&&`.** Never chain shell commands in an `npm` script, a
-  hook, or documentation. Write a Node script instead — that is why `verify` is `.mjs`.
+- **Windows PowerShell 5.1 has no `&&`,** and its `curl` is an alias for `Invoke-WebRequest`,
+  which rejects curl's flags. Never chain shell commands in an `npm` script, a hook, or
+  documentation, and never write bare `curl` in an instruction a colleague will paste — use
+  `curl.exe`, or `Invoke-RestMethod`. This is why `verify` is a Node script rather than shell
+  glue: anything with shell in it is a portability bug waiting for a reader on another OS.
 - **Git Bash rewrites leading-slash arguments into Windows paths.** Pass base values
-  slashless (`sdlc-demo/preview`); `scripts/verify.mjs` normalises them.
+  slashless (`sdlc-preview`); `scripts/verify.mjs` normalises them.
 - **`start-server-and-test` spawns `wmic.exe`**, which Windows 11 removed. Do not add it back.
 - **Never read `$?` after a pipe.** `npm run verify | grep ...; echo $?` reports _grep's_
   status, so a hanging or failing command looks green. This produced a false pass that hid

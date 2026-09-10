@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 
 // Both deploy targets live in a subfolder, so `base` is never '/'.
 //   production : https://rashid.fr/sdlc/
-//   preview    : https://<user>.github.io/sdlc-demo/preview/
+//   preview    : https://rashid.fr/sdlc-preview/
 //
 // CI overrides these with `--site` / `--base` on the `astro build` command line,
 // which keeps the config free of environment-variable plumbing that behaves

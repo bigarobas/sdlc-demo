@@ -14,3 +14,8 @@
 *.ico binary
 *.woff binary
 *.woff2 binary
+
+# The audit log is append-only and written by a hook on every agent write, so two branches
+# almost always append different lines and conflict. `union` keeps both sides rather than
+# raising a conflict — the correct semantics for a log, and the reason git ships this driver.
+docs/sdlc/audit-log.md merge=union

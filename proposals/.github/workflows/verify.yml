@@ -30,7 +30,7 @@ jobs:
           - name: production
             base: sdlc
           - name: preview
-            base: sdlc-demo/preview
+            base: sdlc-preview
 
     name: verify (${{ matrix.name }})
 
