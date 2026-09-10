@@ -154,6 +154,44 @@ The site sections, in talk order:
 
 ---
 
+## Evening 6 — The pipeline diagram as a build artifact (~2-3h)
+
+Added 2026-09-10. The architecture is now large enough that no one page describes it, and a
+hand-drawn diagram would be wrong within a week. So it is generated, and CI fails when the
+code stops matching it.
+
+**Phase 1 — generate and check drift. In scope.**
+
+1. `scripts/diagram.mjs` derives the graph from files that already exist:
+   - `.github/workflows/*.yml` — one node per workflow, plus triggers, `environment:`,
+     secrets referenced, `if:` guards, and the actions it uses
+   - `.claude/settings.json` — hooks, their events and matchers
+   - `.claude/skills/*/SKILL.md` and `.claude/agents/*.md` — names and descriptions
+   - `bands.yaml` — the monitoring edge that closes the loop back to Plan
+2. Emit Mermaid into `docs/PIPELINE.md`, grouped by tier: local session, GitHub, external
+   services. GitHub renders ```mermaid fences natively, so the repository gets a live
+   diagram with no build step and no JavaScript.
+3. `annotations.json` holds what cannot be derived — which node is the gate, which costs
+   nothing, which is a shell. An eval asserts **every generated node has an annotation**, so
+   adding a workflow forces someone to say what it is for.
+4. `npm run diagram` regenerates. CI runs it and fails if the committed file differs, exactly
+   as `prettier --check` does. The diagram cannot drift, because it is not maintained — it
+   is derived, and the drift check is the enforcement.
+
+**Phase 2 — put it on the site. Only if time allows.**
+
+Mermaid needs a browser to rasterise: `mermaid-cli` pulls in Chromium (~300 MB, ~30 s in CI),
+and client-side Mermaid is roughly 2 MB of JavaScript on a page that currently weighs 23 kB.
+Neither is worth it for one image. If the site needs the diagram, render an SVG locally once
+and commit it, or draw one by hand for the talk. Not on the critical path.
+
+**Known limitation, to be stated on the site.** The generator is itself an assumption. It
+catches a workflow nobody documented; it cannot catch a category of thing it was never taught
+to look for. The eval verifies coverage of what the generator knows about, which is not the
+same as coverage of reality.
+
+---
+
 ## Dry runs
 
 - **2026-09-14** — full Lane B rehearsal end to end, and record the 90-second fallback video.
