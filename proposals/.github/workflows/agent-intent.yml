@@ -49,9 +49,18 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Automation mode (a `prompt` input) grants NO tools by default — not the shell,
+          # not the GitHub API. The first run "succeeded" in six seconds having done nothing
+          # at all: it was told to write a file and open a pull request with no ability to do
+          # either, and reported success because nothing failed. A silent no-op is the worst
+          # kind of green.
+          #
+          # Everything below is scoped by command prefix. There is no blanket Bash. Writing
+          # is permitted because the whole job is to produce one file; `protect-guardrails.mjs`
+          # still denies workflows and hooks, and `guard-bash.mjs` still denies pushes to main.
           claude_args: >-
-            --max-turns 15
             --model claude-sonnet-5
+            --allowedTools "Read,Grep,Glob,Write,Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh pr create:*),Bash(git checkout:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(ls:*)"
           prompt: |
             Draft an SDLC intent artifact from GitHub issue #${{ github.event.issue.number }}
             in ${{ github.repository }}.
