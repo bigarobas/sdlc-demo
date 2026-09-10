@@ -6,3 +6,9 @@ site/.astro/
 .env
 .env.*
 .claude/settings.local.json
+
+# The audit hook appends to this on every agent write, so it is permanently dirty and blocks
+# `git checkout` on every branch switch. Three separate sessions lost time to that. The log
+# still exists locally and is still the live evidence of what the agent touched — it is just
+# not tracked. Commit a snapshot deliberately with `git add -f` if one is ever wanted.
+docs/sdlc/audit-log.md
