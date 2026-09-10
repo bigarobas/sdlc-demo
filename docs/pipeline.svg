@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1226 778" role="img" aria-label="The sdlc-demo pipeline: six SDLC stages across four tiers">
+<style>
+  :root{
+    --dv-pink:#e20074; --dv-navy:#0a0528; --dv-light:#f0f0f5;
+    --dv-blue:#315aa1; --dv-blue-dark:#2d3555;
+    --d-bg:#ffffff; --d-lane:#fafafc; --d-lane-alt:#f4f4f8;
+    --d-line:#dcdce6; --d-text:#0a0528; --d-muted:#5f5f72; --d-box:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --d-bg:#161513; --d-lane:#1c1b19; --d-lane-alt:#201f1c;
+    --d-line:#37342e; --d-text:#eae6df; --d-muted:#a49c8f; --d-box:#232019;
+    --dv-blue:#6f9bdd; --dv-pink:#ff5fae;
+  }}
+  text{font-family:ui-sans-serif,system-ui,'Segoe UI',Roboto,sans-serif;fill:var(--d-text)}
+  .lane{fill:var(--d-lane)} .lane-alt{fill:var(--d-lane-alt)}
+  .lane-label{font-size:11px;font-weight:600;fill:var(--d-muted);letter-spacing:.06em;text-transform:uppercase}
+  .stage-n{font-size:13px;font-weight:700;fill:var(--dv-pink);font-family:ui-monospace,monospace}
+  .stage-label{font-size:13px;font-weight:600}
+  .col-rule{stroke:var(--d-line);stroke-width:1;stroke-dasharray:2 4}
+  .box rect{fill:var(--d-box);stroke:var(--d-line);stroke-width:1}
+  .box-label{font-size:11.5px;font-weight:600}
+  .box-note{font-size:9.5px;fill:var(--d-muted)}
+  .kind-workflow rect{stroke:var(--dv-blue)}
+  .kind-environment rect{stroke:var(--dv-blue-dark);stroke-dasharray:4 3}
+  .gate rect{stroke:var(--dv-pink);stroke-width:2}
+  .kind-service rect{stroke:var(--d-line);stroke-dasharray:3 3}
+  .dot-agent{fill:var(--dv-pink)}
+  .decision rect{fill:none;stroke:var(--dv-pink);stroke-width:1.5}
+  .decision-label{font-size:11px;font-weight:600;fill:var(--dv-pink);text-anchor:middle}
+  .hooks rect{fill:none;stroke:var(--d-muted);stroke-width:1;stroke-dasharray:5 4}
+  .loop{fill:none;stroke:var(--dv-pink);stroke-width:1.5;stroke-dasharray:5 4;marker-end:url(#arrow)}
+  .loop-label{font-size:10px;fill:var(--dv-pink);text-anchor:middle;font-style:italic}
+  </style>
+<defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L8 4 L0 8 z" fill="var(--dv-pink)"/></marker></defs>
+<rect width="1226" height="778" fill="var(--d-bg)"/>
+<rect x="0" y="52" width="1226" height="104" class="lane "/>
+<text x="16" y="72" class="lane-label">Human</text>
+<rect x="0" y="156" width="1226" height="196" class="lane lane-alt"/>
+<text x="16" y="176" class="lane-label">Local session</text>
+<rect x="0" y="352" width="1226" height="268" class="lane "/>
+<text x="16" y="372" class="lane-label">GitHub Actions</text>
+<rect x="0" y="620" width="1226" height="84" class="lane lane-alt"/>
+<text x="16" y="640" class="lane-label">External</text>
+<text x="104" y="20" class="stage-n">1</text>
+<text x="120" y="20" class="stage-label">Plan</text>
+<line x1="99" y1="30" x2="99" y2="712" class="col-rule"/>
+<text x="290" y="20" class="stage-n">2</text>
+<text x="306" y="20" class="stage-label">Design</text>
+<line x1="285" y1="30" x2="285" y2="712" class="col-rule"/>
+<text x="476" y="20" class="stage-n">3</text>
+<text x="492" y="20" class="stage-label">Build</text>
+<line x1="471" y1="30" x2="471" y2="712" class="col-rule"/>
+<text x="662" y="20" class="stage-n">4</text>
+<text x="678" y="20" class="stage-label">Test</text>
+<line x1="657" y1="30" x2="657" y2="712" class="col-rule"/>
+<text x="848" y="20" class="stage-n">5</text>
+<text x="864" y="20" class="stage-label">Deploy</text>
+<line x1="843" y1="30" x2="843" y2="712" class="col-rule"/>
+<text x="1034" y="20" class="stage-n">6</text>
+<text x="1050" y="20" class="stage-label">Maintain</text>
+<line x1="1029" y1="30" x2="1029" y2="712" class="col-rule"/>
+<g class="box kind-workflow">
+<rect x="104" y="380" width="176" height="46" rx="5"/>
+<text x="113" y="397" class="box-label">Agent — draft intent</text>
+<text x="113" y="410" class="box-note">issue labelled `intent` -&gt;</text>
+<text x="113" y="421" class="box-note">drafts intent.md, opens a PR</text>
+<circle cx="269" cy="392" r="3.5" class="dot-agent"/>
+</g>
+<g class="box kind-workflow free">
+<rect x="1034" y="380" width="176" height="46" rx="5"/>
+<text x="1043" y="397" class="box-label">Control bands</text>
+<text x="1043" y="410" class="box-note">cron; a breach opens an issue</text>
+</g>
+<g class="box kind-workflow">
+<rect x="848" y="380" width="176" height="46" rx="5"/>
+<text x="857" y="397" class="box-label">Claude Code Review</text>
+<text x="857" y="410" class="box-note">reviews the diff, comments</text>
+<text x="857" y="421" class="box-note">findings</text>
+<circle cx="1013" cy="392" r="3.5" class="dot-agent"/>
+</g>
+<g class="box kind-workflow free">
+<rect x="848" y="433" width="176" height="46" rx="5"/>
+<text x="857" y="450" class="box-label">Deploy</text>
+<text x="857" y="463" class="box-note">builds, then waits at the gate</text>
+</g>
+<g class="box kind-workflow free">
+<rect x="848" y="486" width="176" height="46" rx="5"/>
+<text x="857" y="503" class="box-label">Preview</text>
+<text x="857" y="516" class="box-note">every PR gets a live URL</text>
+</g>
+<g class="box kind-environment gate">
+<rect x="848" y="539" width="176" height="46" rx="5"/>
+<text x="857" y="556" class="box-label">production</text>
+<text x="857" y="569" class="box-note">required reviewer; the</text>
+<text x="857" y="580" class="box-note">credential exists only past this</text>
+</g>
+<g class="box kind-environment">
+<rect x="848" y="592" width="176" height="46" rx="5"/>
+<text x="857" y="609" class="box-label">preview</text>
+<text x="857" y="622" class="box-note">no approval; credential scoped</text>
+<text x="857" y="633" class="box-note">to /sdlc-preview/</text>
+</g>
+<g class="box kind-workflow">
+<rect x="476" y="380" width="176" height="46" rx="5"/>
+<text x="485" y="397" class="box-label">Claude Code</text>
+<text x="485" y="410" class="box-note">@claude mentions — the steering</text>
+<text x="485" y="421" class="box-note">wheel</text>
+<circle cx="641" cy="392" r="3.5" class="dot-agent"/>
+</g>
+<g class="box kind-workflow free">
+<rect x="662" y="380" width="176" height="46" rx="5"/>
+<text x="671" y="397" class="box-label">Verify</text>
+<text x="671" y="410" class="box-note">build, links, evals, formatting</text>
+<text x="671" y="421" class="box-note">— on every push</text>
+</g>
+<g class="box kind-skill">
+<rect x="476" y="184" width="176" height="46" rx="5"/>
+<text x="485" y="201" class="box-label">house-style</text>
+<text x="485" y="214" class="box-note">design constraints, applied not</text>
+<text x="485" y="225" class="box-note">retyped</text>
+</g>
+<g class="box kind-subagent">
+<rect x="476" y="237" width="176" height="46" rx="5"/>
+<text x="485" y="254" class="box-label">simplifier</text>
+<text x="485" y="267" class="box-note">reduction pass, no behaviour</text>
+<text x="485" y="278" class="box-note">change</text>
+</g>
+<g class="box kind-skill">
+<rect x="104" y="184" width="176" height="46" rx="5"/>
+<text x="113" y="201" class="box-label">intent</text>
+<text x="113" y="214" class="box-note">problem, not solution</text>
+</g>
+<g class="box kind-skill">
+<rect x="848" y="184" width="176" height="46" rx="5"/>
+<text x="857" y="201" class="box-label">ship</text>
+<text x="857" y="214" class="box-note">PR body, verification, review</text>
+<text x="857" y="225" class="box-note">focus</text>
+</g>
+<g class="box kind-skill">
+<rect x="290" y="184" width="176" height="46" rx="5"/>
+<text x="299" y="201" class="box-label">spec</text>
+<text x="299" y="214" class="box-note">numbered decisions and their</text>
+<text x="299" y="225" class="box-note">reasons</text>
+</g>
+<g class="box kind-subagent">
+<rect x="662" y="184" width="176" height="46" rx="5"/>
+<text x="671" y="201" class="box-label">verifier</text>
+<text x="671" y="214" class="box-note">runs verify, reports a verdict</text>
+<text x="671" y="225" class="box-note">only</text>
+</g>
+<g class="box kind-service">
+<rect x="848" y="648" width="176" height="46" rx="5"/>
+<text x="857" y="665" class="box-label">FTP host rashid.fr</text>
+<text x="857" y="678" class="box-note">two accounts: one chrooted to</text>
+<text x="857" y="689" class="box-note">preview, one to production</text>
+</g>
+<g class="box kind-service">
+<rect x="1034" y="648" width="176" height="46" rx="5"/>
+<text x="1043" y="665" class="box-label">Slack</text>
+<text x="1043" y="678" class="box-note">notified on deploy and on breach</text>
+</g>
+<g class="box kind-service">
+<rect x="476" y="648" width="176" height="46" rx="5"/>
+<text x="485" y="665" class="box-label">Claude (Pro quota)</text>
+<text x="485" y="678" class="box-note">Pro quota — CI runs bill the</text>
+<text x="485" y="689" class="box-note">same weekly limit</text>
+</g>
+<g class="decision">
+<rect x="104" y="76" width="176" height="32" rx="16"/>
+<text x="192" y="96" class="decision-label">accept the intent</text>
+</g>
+<g class="decision">
+<rect x="290" y="76" width="176" height="32" rx="16"/>
+<text x="378" y="96" class="decision-label">accept the spec</text>
+</g>
+<g class="decision">
+<rect x="476" y="76" width="176" height="32" rx="16"/>
+<text x="564" y="96" class="decision-label">accept the plan</text>
+</g>
+<g class="decision">
+<rect x="848" y="76" width="176" height="32" rx="16"/>
+<text x="936" y="96" class="decision-label">approve + merge the PR</text>
+</g>
+<g class="decision">
+<rect x="848" y="114" width="176" height="32" rx="16"/>
+<text x="936" y="134" class="decision-label">approve the deployment</text>
+</g>
+<g class="decision">
+<rect x="1034" y="76" width="176" height="32" rx="16"/>
+<text x="1122" y="96" class="decision-label">triage: apply `intent`</text>
+</g>
+<g class="hooks">
+<rect x="104" y="306" width="734" height="38" rx="5"/>
+<text x="114" y="322" class="box-label">5 hooks — deterministic, always on</text>
+<text x="114" y="336" class="box-note">protect-guardrails · protect-approved · guard-bash · format · audit</text>
+</g>
+<path d="M 1122 700 V 726 H 192 V 110" class="loop"/>
+<text x="569" y="719" class="loop-label">a breach becomes the next intent — no tokens, no model</text>
+</svg>
