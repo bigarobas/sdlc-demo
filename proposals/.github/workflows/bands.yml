@@ -1,9 +1,22 @@
 name: Control bands
 
-# STAGE 6 (Maintain) — and the step that closes the loop.  [spec D3]
+# STAGE 6 (Maintain) — and the step that hands the loop back to a human.  [spec D3]
 #
-# A breach opens an issue labelled `intent`, which is the Stage 1 trigger. Maintain feeds
-# Plan, and the circle is complete.
+# A breach opens an issue labelled `control-band`. It does NOT apply the `intent` label, and
+# that is a deliberate correction rather than an omission.
+#
+# The first version applied `intent` too, expecting `agent-intent.yml` to pick it up and close
+# the circle unattended. It never fired, because GitHub does not create new workflow runs from
+# events triggered by the repository's GITHUB_TOKEN — a platform rule that exists precisely to
+# stop bots triggering bots.
+#
+# A personal access token would defeat that rule. It should not, for two reasons. The platform
+# is protecting against a real failure mode: a monitoring loop that opens issues that spawn
+# agents that change the site that breaches a band. And the playbook already says the service
+# owner triages maintenance findings — a breach is evidence, not yet a decision.
+#
+# So the closing step is a human applying the `intent` label. That takes one click, produces
+# a genuine triage decision, and turns Stage 6 into Stage 1 exactly as designed.
 #
 # Not one token is spent here. That is deliberate and it is the point: the half of the loop
 # that proves autonomy is the half that cannot fail because a weekly quota ran out. Fetch,
@@ -66,8 +79,7 @@ jobs:
             exit 0
           fi
           gh issue create \
-            --title "[intent] Control band breached on the live site" \
-            --label intent \
+            --title "Control band breached on the live site" \
             --label control-band \
             --body-file breach.md
 
