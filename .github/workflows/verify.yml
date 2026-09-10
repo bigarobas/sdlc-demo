@@ -18,6 +18,18 @@ concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege, stated explicitly rather than inherited. This is the one workflow that
+# deliberately DOES run on fork pull requests — that is what CI is for — which means it
+# executes untrusted code: npm lifecycle scripts from the pull request's lockfile, and the
+# pull request's own source at build time.
+#
+# That is acceptable only because there is nothing here worth stealing: no secrets are passed
+# to fork runs, and this token can read and nothing else. The remaining exposure is your
+# Actions minutes, which is why "Require approval for all outside collaborators" is set in
+# Settings -> Actions -> General. Nothing from a stranger runs until a human clicks.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest

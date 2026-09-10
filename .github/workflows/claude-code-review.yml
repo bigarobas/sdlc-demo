@@ -35,6 +35,11 @@ concurrency:
 
 jobs:
   claude-review:
+    # Same-repository pull requests only. On a public repository anyone can open a fork pull
+    # request; GitHub withholds the OAuth token from those, so the run would fail rather than
+    # spend quota — but not starting is cheaper and clearer. Review outside contributions by
+    # hand, or push the branch to this repository first.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

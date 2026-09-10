@@ -30,3 +30,7 @@ Human edits do not appear here — they appear in `git log` under a real name.
 | 2026-09-10 12:39:53 | 85d23673 | Edit | `proposals/.github/workflows/verify.yml` |
 | 2026-09-10 12:41:23 | 85d23673 | Edit | `docs/sdlc/0000-bootstrap/spec.md` |
 | 2026-09-10 12:43:07 | 85d23673 | Edit | `docs/sdlc/0000-bootstrap/spec.md` |
+| 2026-09-10 13:26:08 | 85d23673 | Write | `proposals/.github/CODEOWNERS` |
+| 2026-09-10 13:32:17 | 85d23673 | Edit | `proposals/.github/workflows/preview.yml` |
+| 2026-09-10 13:32:23 | 85d23673 | Edit | `proposals/.github/workflows/claude-code-review.yml` |
+| 2026-09-10 13:32:31 | 85d23673 | Edit | `proposals/.github/workflows/verify.yml` |
