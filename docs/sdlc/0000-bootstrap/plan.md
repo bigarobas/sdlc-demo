@@ -178,12 +178,29 @@ code stops matching it.
    as `prettier --check` does. The diagram cannot drift, because it is not maintained — it
    is derived, and the drift check is the enforcement.
 
-**Phase 2 — put it on the site. Only if time allows.**
+**Phase 2 — put it on the site, as inline SVG. Also in scope.**
 
-Mermaid needs a browser to rasterise: `mermaid-cli` pulls in Chromium (~300 MB, ~30 s in CI),
-and client-side Mermaid is roughly 2 MB of JavaScript on a page that currently weighs 23 kB.
-Neither is worth it for one image. If the site needs the diagram, render an SVG locally once
-and commit it, or draw one by hand for the talk. Not on the critical path.
+An earlier draft of this plan scoped this out on the grounds that "Mermaid needs a browser to
+rasterise". That was wrong. Mermaid *emits SVG*; the browser is for measuring text so the
+layout engine can place nodes. The output was never the problem.
+
+So the diagram goes on the page as **inline SVG** — no client-side JavaScript, no Chromium,
+and it inherits the theme, because an inline SVG can use `currentColor` and the same CSS
+variables as the rest of the page. A rasterised image could not do that, and would have
+needed two versions for light and dark.
+
+One model, two renderers, both drift-checked:
+
+- **Mermaid text** into `docs/PIPELINE.md` — GitHub renders it natively, so anyone browsing
+  the repository sees the diagram with no build step at all
+- **Inline SVG** into the site, themed and weightless
+
+For the SVG, prefer emitting it ourselves over a general graph-layout library. This graph is
+already structured — columns by SDLC stage, rows by tier (local session, GitHub, external
+services) — so placement is arithmetic rather than force-directed layout, and every attribute
+stays under our control. `elkjs` or `@viz-js/viz` are the fallbacks if hand placement turns
+out worse than expected; both run in plain Node. Do not use `mermaid` with `jsdom`, which
+lacks the text-measurement APIs Mermaid depends on.
 
 **Known limitation, to be stated on the site.** The generator is itself an assumption. It
 catches a workflow nobody documented; it cannot catch a category of thing it was never taught
