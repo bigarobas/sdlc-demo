@@ -50,7 +50,10 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      pull-requests: read
+      # write, not read: two runs completed successfully and posted nothing at all.
+      # The action needs to create review comments, and reading a diff is not enough to
+      # write on it. Still no contents write — reviewing is not editing.
+      pull-requests: write
       issues: read
       id-token: write
 
