@@ -9,7 +9,7 @@ are deliberately hollow, and the reason is the same in each case: cost.
 
 ### Evals <span class="shell">partial</span>
 
-`evals/run.mjs` makes 18 assertions and costs nothing. It checks that the guardrails still
+`evals/run.mjs` costs nothing and asserts a lot. It checks that the guardrails still
 deny what they claim to deny, and that generated artifacts keep their required shape. Loosen a
 regex in a hook and CI goes red.
 
