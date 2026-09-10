@@ -1,0 +1,82 @@
+name: Control bands
+
+# STAGE 6 (Maintain) — and the step that closes the loop.  [spec D3]
+#
+# A breach opens an issue labelled `intent`, which is the Stage 1 trigger. Maintain feeds
+# Plan, and the circle is complete.
+#
+# Not one token is spent here. That is deliberate and it is the point: the half of the loop
+# that proves autonomy is the half that cannot fail because a weekly quota ran out. Fetch,
+# a threshold, an exit code, `gh issue create`.
+#
+# `workflow_dispatch` is included so the breach can be demonstrated on demand rather than
+# waited for — lower a threshold in bands.yaml, run this, watch an issue appear.
+
+on:
+  schedule:
+    - cron: '17 */6 * * *' # not on the hour: shared runners are busiest then
+  workflow_dispatch:
+
+concurrency:
+  group: bands
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write # to open the intent issue
+  actions: read # to read verify.yml run durations for the build_time band
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Check bands
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set +e
+          node scripts/check-bands.mjs > breach.md
+          echo "breached=$?" >> "$GITHUB_OUTPUT"
+          set -e
+
+      # One open issue per breach, not one every six hours. An alert that repeats itself is
+      # an alert people learn to ignore, which is how monitoring quietly stops working.
+      - name: Open an intent issue
+        if: steps.check.outputs.breached == '1'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label control-band --state open --json number --jq 'length')
+          if [ "$existing" != "0" ]; then
+            echo "A control-band issue is already open; not opening another."
+            exit 0
+          fi
+          gh issue create \
+            --title "[intent] Control band breached on the live site" \
+            --label intent \
+            --label control-band \
+            --body-file breach.md
+
+      - name: Notify Slack
+        if: ${{ steps.check.outputs.breached == '1' && env.SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload='{"text":"Control band breached on https://rashid.fr/sdlc/ — an intent issue was opened."}'
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
+          [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
