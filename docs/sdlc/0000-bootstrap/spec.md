@@ -43,7 +43,7 @@ Implements [intent.md](./intent.md).
 │
 ├── docs/sdlc/
 │   ├── REVIEW.md                 # review policy + severity definitions
-│   ├── audit-log.md              # append-only, written by the audit hook
+│   ├── audit-log.md              # hook-written, GITIGNORED (permanently dirty tree)
 │   └── NNNN-slug/{intent,spec,plan}.md
 │
 ├── evals/
