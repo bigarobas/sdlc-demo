@@ -38,6 +38,11 @@ concurrency:
 
 jobs:
   preview:
+    # Same-repository pull requests only. GitHub already withholds secrets from fork pull
+    # requests, so a fork could not publish anything — but without this guard it would try,
+    # fail obscurely on empty credentials, and leave a red check that looks like a bug in
+    # the pipeline rather than a control working. Fail by not starting.
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
