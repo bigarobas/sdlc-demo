@@ -154,6 +154,80 @@ The site sections, in talk order:
 
 ---
 
+## Evening 6 — The pipeline diagram as a build artifact (~2-3h)
+
+Added 2026-09-10. The architecture is now large enough that no one page describes it, and a
+hand-drawn diagram would be wrong within a week. So it is generated, and CI fails when the
+code stops matching it.
+
+**Phase 0 — one diagram, reviewed by a human, before any automation. [you]**
+
+Build the model and emit a single SVG. Look at it. Say whether it is right. Nothing is wired
+into `verify`, the site, or the drift check until that answer is yes.
+
+The order matters, and not only for taste. A drift check makes the committed output
+authoritative: from that point on, changing the diagram means changing the generator and
+regenerating everywhere. Automating first would mean automating whatever the first attempt
+happened to produce, and then paying to change it. It is also the plan-approval gate this
+whole repository argues for, applied to its own tooling — the agent proposes an artifact, a
+human accepts it, and only then does it become part of the machinery.
+
+Concretely: `npm run diagram` writes `docs/pipeline.svg`, and it gets sent over for review as
+a file. Expect to iterate on legibility here — grouping, edge routing, what to leave out —
+because a diagram of thirty nodes that nobody can read at the back of a room has failed
+regardless of how correct it is. **Deciding what to omit is most of the work.**
+
+Only when the SVG is accepted do Phases 1 and 2 proceed.
+
+**Phase 1 — generate and check drift. In scope.**
+
+1. `scripts/diagram.mjs` derives the graph from files that already exist:
+   - `.github/workflows/*.yml` — one node per workflow, plus triggers, `environment:`,
+     secrets referenced, `if:` guards, and the actions it uses
+   - `.claude/settings.json` — hooks, their events and matchers
+   - `.claude/skills/*/SKILL.md` and `.claude/agents/*.md` — names and descriptions
+   - `bands.yaml` — the monitoring edge that closes the loop back to Plan
+2. Emit Mermaid into `docs/PIPELINE.md`, grouped by tier: local session, GitHub, external
+   services. GitHub renders ```mermaid fences natively, so the repository gets a live
+   diagram with no build step and no JavaScript.
+3. `annotations.json` holds what cannot be derived — which node is the gate, which costs
+   nothing, which is a shell. An eval asserts **every generated node has an annotation**, so
+   adding a workflow forces someone to say what it is for.
+4. `npm run diagram` regenerates. CI runs it and fails if the committed file differs, exactly
+   as `prettier --check` does. The diagram cannot drift, because it is not maintained — it
+   is derived, and the drift check is the enforcement.
+
+**Phase 2 — put it on the site, as inline SVG. Also in scope.**
+
+An earlier draft of this plan scoped this out on the grounds that "Mermaid needs a browser to
+rasterise". That was wrong. Mermaid *emits SVG*; the browser is for measuring text so the
+layout engine can place nodes. The output was never the problem.
+
+So the diagram goes on the page as **inline SVG** — no client-side JavaScript, no Chromium,
+and it inherits the theme, because an inline SVG can use `currentColor` and the same CSS
+variables as the rest of the page. A rasterised image could not do that, and would have
+needed two versions for light and dark.
+
+One model, two renderers, both drift-checked:
+
+- **Mermaid text** into `docs/PIPELINE.md` — GitHub renders it natively, so anyone browsing
+  the repository sees the diagram with no build step at all
+- **Inline SVG** into the site, themed and weightless
+
+For the SVG, prefer emitting it ourselves over a general graph-layout library. This graph is
+already structured — columns by SDLC stage, rows by tier (local session, GitHub, external
+services) — so placement is arithmetic rather than force-directed layout, and every attribute
+stays under our control. `elkjs` or `@viz-js/viz` are the fallbacks if hand placement turns
+out worse than expected; both run in plain Node. Do not use `mermaid` with `jsdom`, which
+lacks the text-measurement APIs Mermaid depends on.
+
+**Known limitation, to be stated on the site.** The generator is itself an assumption. It
+catches a workflow nobody documented; it cannot catch a category of thing it was never taught
+to look for. The eval verifies coverage of what the generator knows about, which is not the
+same as coverage of reality.
+
+---
+
 ## Dry runs
 
 - **2026-09-14** — full Lane B rehearsal end to end, and record the 90-second fallback video.
