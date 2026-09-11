@@ -89,17 +89,38 @@ for (const r of rows) {
   if (r.title && r.title !== r.dir) console.log('  ' + r.title);
 }
 
-// Issues labelled `intent` with no directory yet are waiting on the drafting agent.
-const started = new Set(dirs);
-const waiting = (openIntentIssues ?? []).filter(
-  (i) => !rows.some((r) => existsSync(join(ROOT, r.dir, 'intent.md')) && r.title === i.title),
-);
+// An intent drafted by the agent lives on its own branch until someone merges it, so it has
+// no directory here and cannot appear in the table above. Saying only "awaiting or in
+// drafting" was useless: the interesting fact is that a pull request is sitting there.
+const draftPrs = (openPrs ?? []).filter((p) => p.headRefName.startsWith('intent/'));
 
 if (openIntentIssues === null) {
   console.log('\n  (gh unavailable — open issues and pull requests not checked)');
-} else if (waiting.length) {
-  console.log('\nlabelled `intent`, awaiting or in drafting:');
-  for (const i of waiting) console.log(`  #${i.number}  ${i.title}`);
+} else {
+  if (draftPrs.length) {
+    console.log('\ndrafted, not yet on this branch — review and merge:');
+    for (const p of draftPrs) {
+      console.log(`  PR #${p.number}  ${p.title}`);
+      console.log(`      gh pr merge ${p.number} --squash --delete-branch --admin`);
+    }
+  }
+
+  // Labelled, but nothing drafted yet: either the agent is still running or it failed.
+  const drafting = openIntentIssues.filter(
+    (i) =>
+      !draftPrs.some((p) =>
+        p.title.toLowerCase().includes(
+          i.title
+            .replace(/^\[intent\]\s*/i, '')
+            .toLowerCase()
+            .slice(0, 24),
+        ),
+      ),
+  );
+  if (drafting.length) {
+    console.log('\nlabelled `intent`, no draft yet — the agent may still be running:');
+    for (const i of drafting) console.log(`  #${i.number}  ${i.title}`);
+  }
 }
 
 const unlabelled = gh(['issue', 'list', '--state', 'open', '--json', 'number,title,labels']);
