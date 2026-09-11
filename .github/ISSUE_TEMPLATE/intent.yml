@@ -1,14 +1,22 @@
 name: Intent
 description: Propose a change. This is Stage 1 of the SDLC — describe the problem, not the solution.
 title: '[intent] '
-labels: [intent]
+# Deliberately NOT `labels: [intent]`. A template that applies the label files an issue that
+# is already labelled, which fires agent-intent.yml at creation and removes the triage step
+# entirely — the decision to process something would be made by the act of describing it.
+#
+# Leaving it off keeps the two separable: anyone may describe a problem; deciding it is worth
+# an agent's time takes write access, and is a thing a person does on purpose.
 body:
   - type: markdown
     attributes:
       value: |
-        Adding the `intent` label runs an agent that drafts `docs/sdlc/NNNN-slug/intent.md`
-        and opens a pull request. It writes no code. You review the framing before any
-        design work starts.
+        **This issue starts unlabelled, on purpose.** Filing it costs nothing and commits
+        nobody to anything.
+
+        Applying the `intent` label afterwards is the triage decision, and it runs an agent
+        that drafts `docs/sdlc/NNNN-slug/intent.md` and opens a pull request. It writes no
+        code, and a human reviews the framing before any design work starts.
 
         Describe the problem. If you already know the solution, put it in Constraints as a
         decision that has been made, so the reasoning stays visible.
