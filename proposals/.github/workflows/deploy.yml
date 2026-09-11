@@ -16,9 +16,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# cancel-in-progress: true, learned the hard way. A run parked at the environment gate still
+# holds the concurrency group, so one forgotten approval froze every subsequent deploy for
+# seventeen hours — and the symptom was later runs marked "cancelled", which reads like
+# something else entirely. Production sat five merges stale with nothing announcing it.
+#
+# For a deploy, superseding is the correct behaviour anyway: you always want the newest main
+# published, never a queue of historical commits waiting their turn. The trade is that a push
+# arriving mid-upload can cancel it, but the FTP sync takes about three seconds and is
+# idempotent — it is re-run by the next deploy. A stuck queue lasts until somebody notices.
 concurrency:
   group: deploy-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
