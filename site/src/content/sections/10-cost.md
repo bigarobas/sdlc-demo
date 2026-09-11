@@ -15,12 +15,15 @@ the terminal**. That single fact drove most of the architecture.
 | PR review, `--max-turns 8`         | stopped mid-review, posted nothing | ~$1.81    |
 | PR review, `--max-turns 25`        | stopped mid-review, posted nothing | ~$0.99    |
 | PR review, no turn limit           | completed, 17 turns, 2m17s         | ~$0.67    |
+| PR review, full run                | 35 turns, 9m11s, seven findings    | ~$3.75    |
+| PR review, lost its own race       | 6 turns, posted nothing            | ~$0.15    |
 | Intent agent, no tools granted     | "succeeded", did nothing           | ~$0.08    |
 | Intent agent, tools granted        | wrote the artifact, opened a PR    | ~$0.19    |
 | Control-band check → issue → Slack | full monitoring loop               | **$0.00** |
 
-Two thirds of that day's agent spend bought nothing, and all of it went on a single
-misconfigured cost control. The most expensive thing in this repository is a review; the
+Most of that's agent spend bought nothing, and all of it went on a single
+misconfigured cost control. The most expensive thing in this repository is a review that works, at roughly twenty-five
+times the cost of one that does not, and about twenty times a full monitoring cycle. The
 cheapest is the part that closes the loop.
 
 ## What that bought, in decisions
