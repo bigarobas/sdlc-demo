@@ -71,15 +71,15 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # TEMPORARY, for one run. Three reviews have now completed successfully and posted
-          # nothing at all — 17 turns/137s, then 5m49s, then 5 turns/23s. The durations have
-          # nothing in common, so the cause is not a limit being hit. Without the model's own
-          # output there is no way to tell whether it decided the diff needed no review, or
-          # tried to comment and could not.
+          # TEMPORARY — revert after one run. Four reviews have now completed and posted
+          # nothing: 17 turns/137s, 5m49s, 5 turns/23s, 6 turns/18s. Granting pull-requests
+          # write did not change it, so it is not a permissions problem. The runs are now
+          # fast and cheap, which means it is bailing early — and the only thing that can say
+          # why is the model's own output, which is hidden by default.
           #
-          # NOTE: this repository is public, so enabling it puts the review text in a public
-          # log. It is a review of already-public code, but turn it off again once read.
-          # show_full_output: true
+          # NOTE: this repository is public, so this puts the review text in a public log.
+          # It is a review of already-public code. Turn it off again once read.
+          show_full_output: true
           claude_args: >-
             --model claude-sonnet-5
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
