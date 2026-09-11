@@ -37,7 +37,14 @@ const navItems = sections.map(({ slug, title }) => ({ slug, title }));
       </div>
       <h1>{title}</h1>
       <Content />
-      {slug === 'pipeline' && <figure class="diagram" set:html={pipelineSvg} />}
+      {slug === 'pipeline' && (
+        <figure class="diagram">
+          <button class="diagram-expand" type="button">
+            Expand
+          </button>
+          <div class="diagram-canvas" set:html={pipelineSvg} />
+        </figure>
+      )}
     </section>
   ))}
 

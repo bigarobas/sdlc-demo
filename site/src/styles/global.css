@@ -100,6 +100,28 @@ body {
   color: var(--muted);
   text-decoration: none;
   white-space: nowrap;
+  display: flex;
+  gap: 0.55em;
+  align-items: baseline;
+  border-radius: 3px;
+}
+
+.nav-n {
+  font-family: var(--mono);
+  font-size: 0.8em;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The section being read. aria-current carries the state, so the styling and the value
+   announced to a screen reader cannot drift apart. */
+.nav a[aria-current] {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav a[aria-current] .nav-n {
+  opacity: 1;
 }
 
 .nav a:hover,
@@ -313,10 +335,13 @@ footer {
 /* The generated pipeline diagram. It is wider than the prose column on purpose — a
    swimlane diagram squeezed to 68ch is unreadable — so it breaks out and scrolls
    horizontally inside its own container, which the page body never does. */
+/* The diagram fits the column rather than scrolling inside it. A scrollbar hides half a
+   swimlane diagram and gives no hint that the other half exists; fitting shows the shape at
+   a glance, and the Expand button hands it the whole screen when the 9px labels matter. */
 .diagram {
+  position: relative;
   margin: 1.75rem 0 2rem;
   padding: 0;
-  overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -329,8 +354,57 @@ footer {
   }
 }
 
+.diagram-canvas {
+  display: block;
+  padding: 0.5rem;
+}
+
 .diagram svg {
   display: block;
-  min-width: 60rem;
+  width: 100%;
   height: auto;
+}
+
+.diagram-expand {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+}
+
+.diagram-expand:hover,
+.diagram-expand:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Full screen: centre it and use the height as well as the width, which is the whole point
+   of expanding a diagram that is wider than it is tall. */
+.diagram:fullscreen {
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 0;
+  background: var(--bg);
+  padding: 2rem;
+}
+
+.diagram:fullscreen .diagram-canvas {
+  width: 100%;
+  max-height: 100vh;
+  padding: 0;
+}
+
+.diagram:fullscreen svg {
+  max-height: calc(100vh - 4rem);
 }
