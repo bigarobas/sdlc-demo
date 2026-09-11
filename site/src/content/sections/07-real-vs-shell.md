@@ -29,3 +29,35 @@ The mechanism is real: a cron job reads `bands.yaml`, checks the live site, and 
 on breach — deterministically, with no tokens. But the thresholds are availability, page weight
 and build time, because this site has no users. There is no error rate to watch and no
 latency percentile to defend. The loop closes; it just closes around a toy.
+
+### The automatic PR review <span class="shell">unreliable</span>
+
+It runs on every pull request. Roughly one run in five actually posts a review.
+
+This is not the reviewer declining. Its own eligibility check says, in as many words, _"it
+NEEDS code review — not a trivial change"_ — and then the run ends anyway. The last thing the
+model says before it stops is:
+
+> Waiting for the two background agents (PR eligibility check, CLAUDE.md discovery) to
+> complete before continuing.
+
+It spawns background subagents, yields its turn to wait for them, and the session ends.
+Nothing wakes it. That is a race, which is why six runs have durations with no pattern
+whatsoever: 137s, 5m49s, 23s, 9m11s, 57s.
+
+**When it wins the race it is very good.** On the run that worked it produced seven findings
+in thirty-five turns, two of which were about to break the live demo: an issue template that
+applied its own label, so the deliberate on-stage triage gesture could never happen; and a
+deploy whose approval would have published a file the site does not render, leaving the
+climax of the demo showing a byte-identical page. Neither had been caught by a human reading
+the same text.
+
+It also got one thing confidently wrong, estimating a workflow at "tens of seconds to a
+couple of minutes" when three measured runs all took twenty seconds. The finding was right,
+the reasoning was not — which is the correct way to hold all of this.
+
+**That one good review cost $3.75.** A silent one costs about $0.15. On a Pro plan, paying
+roughly four dollars for a one-in-five chance of a review is a worse deal than asking for one
+by hand when you want it, which works every time. The automatic version stays because it is
+honest to show a thing that half-works; the reliable path is a comment saying
+`@claude review this PR`.

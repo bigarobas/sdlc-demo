@@ -71,15 +71,28 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
-          # TEMPORARY — revert after one run. Four reviews have now completed and posted
-          # nothing: 17 turns/137s, 5m49s, 5 turns/23s, 6 turns/18s. Granting pull-requests
-          # write did not change it, so it is not a permissions problem. The runs are now
-          # fast and cheap, which means it is bailing early — and the only thing that can say
-          # why is the model's own output, which is hidden by default.
+          # show_full_output is off again. It was enabled for two runs to find out why six
+          # reviews had completed and posted nothing, and it answered the question — one of
+          # those two runs reviewed properly and one did not, which ruled the flag out as the
+          # cause and pointed at the real one.
           #
-          # NOTE: this repository is public, so this puts the review text in a public log.
-          # It is a review of already-public code. Turn it off again once read.
-          show_full_output: true
+          # THE FINDING. The review does not decline. Its own eligibility check concluded
+          # "it NEEDS code review — not a trivial change", and then the run ended anyway. The
+          # last thing the model says is:
+          #
+          #   "Waiting for the two background agents (PR eligibility check, CLAUDE.md
+          #    discovery) to complete before continuing."
+          #
+          # It spawns background subagents, yields its turn to wait for them, and the session
+          # ends. Nothing wakes it. When they happen to report back first the review is
+          # excellent — 35 turns, seven findings, two of them demo-breaking. When they do not,
+          # it costs $0.15 and says nothing. That is a race, which is why the durations have
+          # no pattern: 137s, 5m49s, 23s, 9m11s, 57s.
+          #
+          # `Skill` is added to the allowlist because it was the one denied tool in the silent
+          # runs. It may not be the trigger — the waiting behaviour is inside the plugin and
+          # not something this workflow can reach — but a denial in the middle of an
+          # orchestration that is already racing is worth removing.
           claude_args: >-
             --model claude-sonnet-5
-            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
+            --allowedTools "Read,Grep,Glob,Skill,Bash(git diff:*),Bash(git log:*),Bash(gh pr view:*),Bash(gh pr diff:*),mcp__github_inline_comment__create_inline_comment"
