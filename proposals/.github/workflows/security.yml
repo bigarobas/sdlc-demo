@@ -1,0 +1,79 @@
+name: Security
+
+# A LABELLED SHELL, and the site says so.  [spec section 5]
+#
+# `npm audit` is real and runs. The agentic security review is written below and commented
+# out, because on a Pro plan it would compete for quota with the demo itself, and because a
+# static site with no forms, no authentication and no server has close to no attack surface —
+# so it would spend real money to find nothing.
+#
+# Inventing a finding to make this workflow look complete is exactly the dishonesty the rest
+# of the repository argues against. It stays a shell, visibly, until there is something worth
+# reviewing.
+#
+# Deliberately does NOT fail the build on audit findings. A transitive advisory in a build
+# dependency of a static site is information, not an emergency, and a check that cries wolf
+# gets ignored — which is how a real one gets missed.
+
+on:
+  schedule:
+    - cron: '23 6 * * 1' # Monday morning, so anything found has a week to be dealt with
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '**/package.json'
+      - '**/package-lock.json'
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          npm ci --prefix site
+
+      # `|| true` on purpose: report, do not block. See the note at the top.
+      - name: Audit dependencies
+        run: |
+          echo "## Dependency audit" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          npm audit --audit-level=high 2>&1 | tail -30 >> "$GITHUB_STEP_SUMMARY" || true
+          npm audit --prefix site --audit-level=high 2>&1 | tail -30 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      # --- SHELL: the agentic half, deliberately not enabled ---------------------------
+      #
+      # Uncomment when there is something worth reviewing — a form, an endpoint, a secret
+      # handled in application code. Until then it would cost roughly a dollar a week to
+      # confirm that a page of static HTML is still a page of static HTML.
+      #
+      # - name: Agentic security review
+      #   uses: anthropics/claude-code-action@v1
+      #   with:
+      #     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      #     prompt: |
+      #       Review this repository for security issues an automated audit cannot see:
+      #       secrets reachable by jobs that should not have them, workflow triggers that
+      #       let untrusted input reach a privileged context, and any path by which an
+      #       agent could reach the production credential.
+      #       Report findings only. Change nothing.
+      #     claude_args: >-
+      #       --model claude-sonnet-5
+      #       --allowedTools "Read,Grep,Glob"
