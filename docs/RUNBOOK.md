@@ -17,10 +17,18 @@ and pretending otherwise means standing in silence watching a spinner.
       the 14th, re-record it. A recording that shows a different site than the screen is worse
       than no recording.
 - [ ] **Reset the band threshold.** `bands.yaml` on `main` must hold the real 512000, or the
-      cron will open an issue overnight and the live demo will have nothing to breach.
+      cron will open an issue overnight and the live demo will have nothing left to breach.
+      Read the value, do not assume it:
 
 ```powershell
-gh run list --workflow "Control bands" -L 3
+git show origin/main:bands.yaml | Select-String "max:"
+```
+
+- [ ] **Check no band has already fired.** An open control-band issue means the cron has
+      performed your trick for you overnight.
+
+```powershell
+gh issue list --label control-band --state open
 ```
 
 - [ ] **Close any open issues and PRs.** A clean repository on the projector is worth more
@@ -43,15 +51,26 @@ gh run list --workflow "Control bands" -L 3
 
 ---
 
-## Lane B — fire at T+2, harvest at T+20
+## Lane B — fire at T+2, harvest at T+18
 
 The whole point: **start it before you explain it.** By the time you have talked through the
 concepts, the agent has finished, and the result is waiting rather than being waited for.
 
 ### T+2 — file the intent, then walk away from it
 
-Tab 3. Use the issue template. Something small and visible; decide the wording on the 14th and
-do not improvise it on the day. Then apply the `intent` label — **on stage, deliberately**.
+**Do not use the issue template chooser.** `.github/ISSUE_TEMPLATE/intent.yml` sets
+`labels: [intent]`, so a templated issue arrives already labelled and `agent-intent.yml` fires
+at creation — the deliberate labelling gesture the whole security narration hangs on would
+already have happened, invisibly, before you touched anything.
+
+File it unlabelled instead, from the terminal, with wording decided on the 14th and not
+improvised on the day:
+
+```powershell
+gh issue create --title "[intent] <decided on the 14th>" --body "<decided on the 14th>"
+```
+
+Then apply the `intent` label — **on stage, deliberately**, in the browser.
 
 > "That label is the only thing I did. Applying it takes write access, which is the difference
 > between a maintainer triaging and anyone on the internet typing into a box. We will come back
@@ -74,15 +93,31 @@ something, but that it wrote down what it could not determine instead of inventi
 
 Then the checks: `verify` green on two base paths, a preview URL you can click.
 
-### T+20 — the two gates
+### T+20 — the two approvals
 
-1. **Approve the pull request.** You can, because the author is `claude[bot]` and not you.
-   The agent cannot merge its own work.
-2. **Merge it.** The deploy starts and stops at the `production` environment.
-3. **Approve the deployment.** Refresh the site.
+Two gates, with a merge between them:
+
+1. **Gate one — approve the pull request.** You can, because the author is `claude[bot]` and
+   not you. The agent cannot merge its own work.
+2. Merge it. The deploy starts and stops at the `production` environment.
+3. **Gate two — approve the deployment.**
 
 > "The agent wrote it, CI checked it, and it stopped there. Not because it was told to stop —
 > because the FTP password does not exist on its side of that line."
+
+**Say plainly that the page does not change.** This cycle produced an _artifact_ —
+`docs/sdlc/NNNN-slug/intent.md` — and `docs/` is not part of the Astro build, which renders
+only `site/src/content/sections/*.md` and the generated diagram. The deploy runs, the gate
+holds, and the site is byte-identical.
+
+That is a flat ending unless you name it, so name it:
+
+> "Nothing on the page moved, because what just went through the whole pipeline was a
+> document, not a paragraph. Stage 1 produces an intent — deciding what to build. The next
+> cycle is what builds it."
+
+If you want something visible at the end instead, have a small **content** pull request
+prepared and unmerged before the talk, and merge that at T+22 as a second, faster lap.
 
 ---
 
@@ -114,8 +149,9 @@ holds is the credential that is not there.
 gh workflow run "Control bands" --ref test/band-breach
 ```
 
-That branch has an absurd page-weight budget, so the real page breaches it. Fourteen seconds
-later an issue opens by itself, and Slack pings.
+That branch has an absurd page-weight budget, so the real page breaches it. About twenty
+seconds later — measured across three runs, not estimated — an issue opens by itself, and
+Slack pings.
 
 > "No model ran. That is curl, a threshold, and an exit code. The half of the loop that proves
 > autonomy is the half that costs nothing — which is also why it still works when the quota
@@ -145,7 +181,7 @@ It is a live demo. Something will.
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | The agent's PR has not appeared by T+18 | Do not wait. Go to A1 and A3, come back at T+25. The Actions tab shows it is still running — say so, it is more honest than filling silence.           |
 | The agent produces something odd        | **Show it.** A wrong artifact inside a PR a human must approve is the containment argument working. Read it aloud and explain why it is not a problem. |
-| The quota is exhausted                  | Lane A costs nothing. Run A1 and A3 and play the recording for the rest.                                                                               |
+| The quota is exhausted                  | Run **A2 and A3** — A1 still needs a live model turn even though the edit is denied. Play the recording for the rest.                                  |
 | The deploy hangs before the gate        | Check for an older unapproved run holding the queue — that happened for seventeen hours once. `gh run list --workflow Deploy`                          |
 | Preview shows the wrong branch          | Expected. It is one rolling preview: the most recently updated PR wins. Say that and move on.                                                          |
 | Nothing works at all                    | The recording. It is ninety seconds and it shows the same cycle.                                                                                       |
