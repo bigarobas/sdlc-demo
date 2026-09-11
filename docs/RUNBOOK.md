@@ -58,19 +58,13 @@ concepts, the agent has finished, and the result is waiting rather than being wa
 
 ### T+2 — file the intent, then walk away from it
 
-**Do not use the issue template chooser.** `.github/ISSUE_TEMPLATE/intent.yml` sets
-`labels: [intent]`, so a templated issue arrives already labelled and `agent-intent.yml` fires
-at creation — the deliberate labelling gesture the whole security narration hangs on would
-already have happened, invisibly, before you touched anything.
+Tab 3, the template chooser. The template files the issue **unlabelled** by design, so
+nothing runs yet. Wording decided on the 14th, not improvised on the day.
 
-File it unlabelled instead, from the terminal, with wording decided on the 14th and not
-improvised on the day:
+Then apply the `intent` label — **on stage, deliberately**.
 
-```powershell
-gh issue create --title "[intent] <decided on the 14th>" --body "<decided on the 14th>"
-```
-
-Then apply the `intent` label — **on stage, deliberately**, in the browser.
+That separation is the point, and it is worth being slow about: filing costs nothing and
+commits nobody; labelling is the decision, and it takes write access.
 
 > "That label is the only thing I did. Applying it takes write access, which is the difference
 > between a maintainer triaging and anyone on the internet typing into a box. We will come back
