@@ -1,6 +1,6 @@
 ---
 name: sdlc
-description: Move a piece of work to its next SDLC stage. Use when asked to continue, advance or run an intent — "/sdlc 0001-build-info", "carry on with the build-info intent", "what is the next step for that intent". Reports where the work is and what a human must do next.
+description: Move a piece of work to its next SDLC stage. Use when asked to continue, advance or run an intent — "/sdlc 0000-bootstrap", "carry on with the bootstrap intent", "what is the next step for that intent". Reports where the work is and what a human must do next.
 ---
 
 # Running the cycle
