@@ -20,9 +20,12 @@ const base = import.meta.env.BASE_URL;
       <nav class="nav" aria-label="Sections">
         <div class="nav-title">AI-native SDLC</div>
         <ol>
-          {sections.map((s: { slug: string; title: string }) => (
+          {sections.map((s: { slug: string; title: string }, i: number) => (
             <li>
-              <a href={`#${s.slug}`}>{s.title}</a>
+              <a href={`#${s.slug}`} data-nav-for={s.slug}>
+                <span class="nav-n">{String(i + 1).padStart(2, '0')}</span>
+                <span class="nav-t">{s.title}</span>
+              </a>
             </li>
           ))}
         </ol>
@@ -31,5 +34,77 @@ const base = import.meta.env.BASE_URL;
         <slot />
       </main>
     </div>
+
+    <script>
+      // Two small behaviours, and the only JavaScript on the page.
+      //
+      // Everything else here is static by choice, so each of these has to earn its bytes:
+      // on a long page with eleven sections, "where am I" and "let me see that diagram
+      // properly" are questions the reader genuinely has, and no amount of CSS answers them.
+
+      // --- 1. Mark the section currently being read -------------------------------------
+      // rootMargin pins the trigger line near the top of the viewport rather than the
+      // middle, so the heading you are reading is the one highlighted — not the one
+      // half-scrolled below it.
+      const links = new Map<string, HTMLAnchorElement>();
+      document.querySelectorAll<HTMLAnchorElement>('[data-nav-for]').forEach((a) => {
+        links.set(a.dataset.navFor!, a);
+      });
+
+      const sections = [...document.querySelectorAll<HTMLElement>('.section[id]')];
+      let current: string | null = null;
+
+      const setCurrent = (id: string | null) => {
+        if (id === current) return;
+        if (current) links.get(current)?.removeAttribute('aria-current');
+        if (id) links.get(id)?.setAttribute('aria-current', 'true');
+        current = id;
+      };
+
+      if ('IntersectionObserver' in window && sections.length) {
+        const visible = new Set<string>();
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              const id = (entry.target as HTMLElement).id;
+              if (entry.isIntersecting) visible.add(id);
+              else visible.delete(id);
+            }
+            // Document order wins, so scrolling up and down gives the same answer.
+            const first = sections.find((s) => visible.has(s.id));
+            if (first) setCurrent(first.id);
+          },
+          { rootMargin: '-12% 0px -70% 0px', threshold: 0 },
+        );
+        sections.forEach((s) => observer.observe(s));
+      }
+
+      // --- 2. Let the diagram be looked at properly --------------------------------------
+      // Inline, it scales to fit the column, which makes the 9px trigger labels unreadable.
+      // Rather than a scrollbar — which hides half the diagram and gives no hint that there
+      // is more — a button hands the whole thing the screen.
+      const figure = document.querySelector<HTMLElement>('.diagram');
+      const button = document.querySelector<HTMLButtonElement>('.diagram-expand');
+
+      if (figure && button && figure.requestFullscreen) {
+        const label = () => {
+          const open = document.fullscreenElement === figure;
+          button.textContent = open ? 'Close' : 'Expand';
+          button.setAttribute(
+            'aria-label',
+            open ? 'Close the diagram' : 'Expand the diagram to full screen',
+          );
+        };
+        button.addEventListener('click', () => {
+          if (document.fullscreenElement === figure) document.exitFullscreen();
+          else figure.requestFullscreen().catch(() => {});
+        });
+        document.addEventListener('fullscreenchange', label);
+        label();
+      } else if (button) {
+        // No Fullscreen API: say nothing rather than offer a button that does nothing.
+        button.hidden = true;
+      }
+    </script>
   </body>
 </html>
