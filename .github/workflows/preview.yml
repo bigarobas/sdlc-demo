@@ -46,7 +46,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    # Gives the pull request a clickable "View deployment" link, so no comment step is needed.
+    # The repository default is read-only, and posting the preview comment is a write. This
+    # is the same trap the review workflow appears to be sitting in: a job that reads a pull
+    # request fine and silently cannot write on it. Nothing else is granted — publishing goes
+    # over FTP, not through the GitHub token.
+    permissions:
+      contents: read
+      pull-requests: write
+
     environment:
       name: preview
       url: https://rashid.fr/sdlc-preview/
@@ -89,3 +96,34 @@ jobs:
           # /www/sdlc-preview/www/sdlc-preview/.
           server-dir: ./
           state-name: .ftp-deploy-sync-state.json
+
+      # Say where it went, on the pull request itself. GitHub does surface the environment
+      # URL, but in the Deployments box, which is easy to never notice — and a preview nobody
+      # can find is a preview that does not exist. One comment, edited in place on each push
+      # rather than a new one every time.
+      - name: Comment the preview URL
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const marker = '<!-- preview-url -->';
+            const sha = context.sha.slice(0, 7);
+            const body = [
+              marker,
+              '**Preview:** https://rashid.fr/sdlc-preview/',
+              '',
+              'Built from ' + sha + ' — this pull request *merged into main*, which is what it',
+              'will look like after merging, not the branch on its own.',
+              '',
+              'One rolling preview: the most recently updated pull request wins.',
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const mine = comments.data.find((c) => c.body?.includes(marker));
+
+            if (mine) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: mine.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
