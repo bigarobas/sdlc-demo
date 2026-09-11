@@ -160,18 +160,25 @@
 <text x="114" y="240" class="box-note">problem, not solution</text>
 </g>
 <g class="box kind-skill">
+<rect x="290" y="194" width="176" height="60" rx="2"/>
+<path d="M300 203 h7 l3 3 v8 h-10 z M307 203 v3 h3" class="glyph "/>
+<text x="318" y="211" class="box-label">sdlc</text>
+<text x="300" y="226" class="box-trigger">▸ /sdlc &lt;id&gt;, or --auto</text>
+<text x="300" y="240" class="box-note">runs the next stage, one at a time</text>
+</g>
+<g class="box kind-skill">
+<rect x="290" y="262" width="176" height="60" rx="2"/>
+<path d="M300 271 h7 l3 3 v8 h-10 z M307 271 v3 h3" class="glyph "/>
+<text x="318" y="279" class="box-label">spec</text>
+<text x="300" y="294" class="box-trigger">▸ /spec, after an intent</text>
+<text x="300" y="308" class="box-note">numbered decisions, with reasons</text>
+</g>
+<g class="box kind-skill">
 <rect x="848" y="194" width="176" height="60" rx="2"/>
 <path d="M858 203 h7 l3 3 v8 h-10 z M865 203 v3 h3" class="glyph "/>
 <text x="876" y="211" class="box-label">ship</text>
 <text x="858" y="226" class="box-trigger">▸ /ship, once verify passes</text>
 <text x="858" y="240" class="box-note">PR body, verification, focus</text>
-</g>
-<g class="box kind-skill">
-<rect x="290" y="194" width="176" height="60" rx="2"/>
-<path d="M300 203 h7 l3 3 v8 h-10 z M307 203 v3 h3" class="glyph "/>
-<text x="318" y="211" class="box-label">spec</text>
-<text x="300" y="226" class="box-trigger">▸ /spec, after an intent</text>
-<text x="300" y="240" class="box-note">numbered decisions, with reasons</text>
 </g>
 <g class="box kind-subagent">
 <rect x="662" y="194" width="176" height="60" rx="14"/>

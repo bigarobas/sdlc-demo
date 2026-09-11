@@ -22,6 +22,7 @@ flowchart LR
   subgraph S2["2 · Design"]
     direction TB
     dec_spec{"accept the spec"}
+    skill_sdlc["sdlc<br/><small>▸ /sdlc <id>, or --auto</small>"]
     skill_spec["spec<br/><small>▸ /spec, after an intent</small>"]
   end
   subgraph S3["3 · Build"]
@@ -81,7 +82,7 @@ flowchart LR
 
 - **Pink** marks a human decision or the production gate. Nothing else is pink.
 - **▸** is what triggers a thing, not what it does.
-- 7 workflows, 2 environments, 5 hooks, 4 skills, 2 subagents, 3 services.
+- 7 workflows, 2 environments, 5 hooks, 5 skills, 2 subagents, 3 services.
 - 3 of them spend Claude quota: `Agent — draft intent`, `Claude Code Review`, `Claude Code`. Everything else is free.
 
 A rendered SVG of the same model, themed for light and dark, is on
