@@ -79,6 +79,13 @@
     "note": "numbered decisions, with reasons",
     "trigger": "/spec, after an intent"
   },
+  "skill:sdlc": {
+    "lane": "local",
+    "stage": 2,
+    "cost": "interactive",
+    "trigger": "/sdlc <id>, or --auto",
+    "note": "runs the next stage, one at a time"
+  },
   "skill:house-style": {
     "lane": "local",
     "stage": 3,
