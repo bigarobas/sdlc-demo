@@ -1,6 +1,6 @@
 ---
 name: sdlc
-description: Move a piece of work to its next SDLC stage. Use when asked to continue, advance or run an intent — "/sdlc 0002", "carry on with the build-info intent", "what is the next step for 0002". Reports where the work is and what a human must do next.
+description: Move a piece of work to its next SDLC stage. Use when asked to continue, advance or run an intent — "/sdlc 0000-bootstrap", "carry on with the bootstrap intent", "what is the next step for that intent". Reports where the work is and what a human must do next.
 ---
 
 # Running the cycle
@@ -18,7 +18,10 @@ That is a script, not a judgement call: it prints every intent, its status, whic
 exist, and any open pull request. Trust it over memory — the repository may have moved since
 this session started.
 
-If the requested id does not appear, say so and stop. Do not invent an intent directory.
+If the requested id does not appear, say so and stop. Do not invent an intent directory, and
+do not refer to one in conversation either — an id exists only once the drafting agent has
+created its directory, and the number is whichever is next unused. Quoting a plausible id that
+does not exist sends someone looking for a thing that was never there.
 
 ## The stages
 
