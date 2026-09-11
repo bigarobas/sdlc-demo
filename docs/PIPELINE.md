@@ -35,6 +35,7 @@ flowchart LR
   end
   subgraph S4["4 · Test"]
     direction TB
+    wf_security[["Security<br/><small>▸ cron · manual · pull request</small>"]]
     wf_verify[["Verify<br/><small>▸ push to main · pull request</small>"]]
     agent_verifier(["verifier<br/><small>▸ asked, before claiming done</small>"])
   end
@@ -82,7 +83,7 @@ flowchart LR
 
 - **Pink** marks a human decision or the production gate. Nothing else is pink.
 - **▸** is what triggers a thing, not what it does.
-- 7 workflows, 2 environments, 5 hooks, 5 skills, 2 subagents, 3 services.
+- 8 workflows, 2 environments, 5 hooks, 5 skills, 2 subagents, 3 services.
 - 3 of them spend Claude quota: `Agent — draft intent`, `Claude Code Review`, `Claude Code`. Everything else is free.
 
 A rendered SVG of the same model, themed for light and dark, is on
