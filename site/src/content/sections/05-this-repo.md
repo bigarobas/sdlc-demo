@@ -17,18 +17,19 @@ docs/sdlc/
   0000-bootstrap/{intent,spec,plan}.md             this project's own artifact chain
   REVIEW.md                                        review policy and severities
   audit-log.md                                     hook-written, local only — see below
-evals/run.mjs                                      18 assertions, zero tokens
+evals/run.mjs                                      structural assertions, zero tokens
 bands.yaml                                         what "healthy" means, in numbers
 .github/workflows/
-  verify.yml       deterministic: build, links, evals, formatting     free
-  preview.yml      every PR gets a live URL                           free
-  deploy.yml       gated FTP release to rashid.fr/sdlc/               free
-  claude.yml       @claude mentions                                   agent
-  agent-review.yml review on pull requests                            agent
-  bands.yml        cron; a breach opens an issue                      free
+  verify.yml               build, links, evals, format, diagram       free
+  preview.yml              every PR gets a live URL                   free
+  deploy.yml               gated FTP release to rashid.fr/sdlc/       free
+  bands.yml                cron; a breach opens an issue              free
+  claude.yml               @claude mentions                           agent
+  claude-code-review.yml   reviews pull requests                      agent
+  agent-intent.yml         issue labelled -> drafts an intent         agent
 ```
 
-Three of the six workflows spend no tokens at all. That is deliberate: the stages that must
+Four of the seven workflows spend no tokens at all. That is deliberate: the stages that must
 never fail for quota reasons are the stages that do not consume quota.
 
 **One correction, because it is the kind of detail that quietly turns a claim into a lie.**

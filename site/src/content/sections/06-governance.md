@@ -35,3 +35,41 @@ The FTP password for `rashid.fr` lives in a GitHub Environment with a required r
 does not exist for the build job, for any agent job, or for any workflow that has not been
 approved by a named human. The agent can write the code, open the pull request and pass every
 check. It cannot deploy, because it has nothing to deploy with.
+
+### The repository is public, so anyone can open a pull request
+
+That sounds alarming and mostly is not, because the platform already draws the line in the
+right place. **Secrets are never passed to a workflow triggered from a fork**, and the token
+such a run does get is read-only. A stranger's pull request can spend CI minutes; it cannot
+reach the FTP credential or the Claude quota, because neither exists on its side of the fence.
+The `@claude` workflow adds its own check — it verifies the triggering user has write access
+before it starts.
+
+Two things were added on top:
+
+- **`CODEOWNERS` plus a branch rule.** An agent's pull request is authored by `claude[bot]`,
+  not by a person, so a named human has to approve it before it can merge. The agent cannot
+  merge its own work.
+- **Fork guards.** The preview and review workflows refuse to start on a pull request from a
+  fork at all. They would have failed anyway for want of credentials; not starting is cheaper
+  and reads as a control rather than a bug.
+
+### Prompt injection is contained here, not prevented
+
+An agent reads pull request diffs and issue bodies, and on a public repository anyone can
+write those. So the drafting workflow triggers on an issue being **labelled**, never on one
+being **opened** — applying a label needs write access, which makes the trigger _a maintainer
+decided to process this_ rather than _a stranger typed something_.
+
+The prompt then states plainly that the issue body is untrusted data describing a problem, and
+never instructions. When it was run for real, the agent volunteered this in its own output:
+
+> No other instructions, commands, or configuration changes were requested by the issue text
+> itself; the issue body is a standard automated control-band report with no attempt to direct
+> this agent.
+
+That is worth more than a promise, because it is auditable. But the honest word is
+_contained_, not _prevented_: a hostile issue can still produce a strange artifact. It just
+produces it inside a pull request that a human reads, and that `CODEOWNERS` requires a human
+to approve, before it reaches anything that matters — the same containment the deploy gate
+relies on.
