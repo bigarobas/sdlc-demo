@@ -11,7 +11,9 @@
     "build": "npm --prefix site run build",
     "verify": "node scripts/verify.mjs",
     "verify:preview": "node scripts/verify.mjs",
-    "check:evals": "node evals/run.mjs"
+    "check:evals": "node evals/run.mjs",
+    "diagram": "node scripts/diagram.mjs",
+    "check:diagram": "node scripts/diagram.mjs --check"
   },
   "devDependencies": {
     "linkinator": "^6.1.2",

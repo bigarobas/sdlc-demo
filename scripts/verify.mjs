@@ -123,6 +123,11 @@ if (failed) process.exit(1);
 console.log(`\n▶ evals`);
 run(['run', 'check:evals'], 'evals');
 
+// The diagram is a build artifact, so a stale one is a failing build — not a stale picture
+// somebody notices six months later.
+console.log(`\n▶ diagram`);
+run(['run', 'check:diagram'], 'diagram drift check');
+
 console.log('\n✓ verify passed');
 
 // Exit explicitly. Killing the npm wrapper does not always take the astro child with it,

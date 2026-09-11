@@ -125,5 +125,30 @@ check('bootstrap spec.md links back to its intent', () => {
   return body.includes('intent.md') ? null : 'spec.md does not reference intent.md';
 });
 
+console.log('\npipeline diagram — every derived node is described');
+const { deriveModel, loadAnnotations } = await import('../scripts/diagram/model.mjs');
+const derived = deriveModel().nodes;
+const notes = loadAnnotations();
+
+check('the model derives something from every source', () => {
+  const kinds = new Set(derived.map((n) => n.kind));
+  const required = ['workflow', 'hook', 'skill', 'subagent', 'environment', 'service'];
+  const absent = required.filter((k) => !kinds.has(k));
+  return absent.length ? `no nodes derived for: ${absent.join(', ')}` : null;
+});
+check('every derived node has an annotation', () => {
+  const missing = derived.filter((n) => !notes[n.id]).map((n) => n.id);
+  return missing.length ? `undescribed: ${missing.join(', ')}` : null;
+});
+check('every annotation still matches a real node', () => {
+  const ids = new Set(derived.map((n) => n.id));
+  const orphans = Object.keys(notes).filter((k) => !k.startsWith('_') && !ids.has(k));
+  return orphans.length ? `describes nodes that no longer exist: ${orphans.join(', ')}` : null;
+});
+check('every workflow states what triggers it', () => {
+  const silent = derived.filter((n) => n.kind === 'workflow' && !n.triggerText).map((n) => n.id);
+  return silent.length ? `no trigger derived for: ${silent.join(', ')}` : null;
+});
+
 console.log(`\n${passes} passed, ${failures} failed\n`);
 process.exit(failures ? 1 : 0);

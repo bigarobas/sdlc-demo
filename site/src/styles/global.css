@@ -2,14 +2,17 @@
    Light palette on bare :root; only what changes is redefined for dark. */
 
 :root {
-  --bg: #fbfaf8;
+  /* Digital Virgo: pink #E20074, navy #0A0528, light #F0F0F5.
+     Pink is reserved for emphasis and interaction — the same rule the diagram follows,
+     where it means "a human decides here" and nothing else. */
+  --bg: #f7f7fa;
   --surface: #ffffff;
-  --border: #e3ded6;
-  --text: #1c1a17;
-  --muted: #5f594f;
-  --accent: #9a4f21;
-  --accent-soft: #f3e9e1;
-  --code-bg: #f4f1ec;
+  --border: #dcdce6;
+  --text: #0a0528;
+  --muted: #5f5f72;
+  --accent: #c2005f;
+  --accent-soft: #fdeaf3;
+  --code-bg: #eeeef4;
 
   --measure: 68ch;
   --step--1: 0.875rem;
@@ -23,26 +26,26 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #161513;
-    --surface: #1e1c19;
-    --border: #332f29;
-    --text: #eae6df;
-    --muted: #a49c8f;
-    --accent: #e08b52;
-    --accent-soft: #2a211a;
-    --code-bg: #232019;
+    --bg: #0a0528;
+    --surface: #171142;
+    --border: #2d2856;
+    --text: #f0f0f5;
+    --muted: #9d9ab8;
+    --accent: #ff5fae;
+    --accent-soft: #24123f;
+    --code-bg: #120c33;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #161513;
-  --surface: #1e1c19;
-  --border: #332f29;
-  --text: #eae6df;
-  --muted: #a49c8f;
-  --accent: #e08b52;
-  --accent-soft: #2a211a;
-  --code-bg: #232019;
+  --bg: #0a0528;
+  --surface: #171142;
+  --border: #2d2856;
+  --text: #f0f0f5;
+  --muted: #9d9ab8;
+  --accent: #ff5fae;
+  --accent-soft: #24123f;
+  --code-bg: #120c33;
 }
 
 * {
@@ -305,4 +308,29 @@ footer {
   font-size: var(--step--1);
   border-top: 1px solid var(--border);
   padding-top: 1.5rem;
+}
+
+/* The generated pipeline diagram. It is wider than the prose column on purpose — a
+   swimlane diagram squeezed to 68ch is unreadable — so it breaks out and scrolls
+   horizontally inside its own container, which the page body never does. */
+.diagram {
+  margin: 1.75rem 0 2rem;
+  padding: 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+@media (min-width: 90rem) {
+  .diagram {
+    /* Reclaim some of the page margin once there is room for it. */
+    margin-right: calc(-1 * min(14rem, 8vw));
+  }
+}
+
+.diagram svg {
+  display: block;
+  min-width: 60rem;
+  height: auto;
 }

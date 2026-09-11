@@ -1,0 +1,190 @@
+{
+  "_comment": [
+    "What the repository cannot tell us about itself: which SDLC stage a thing belongs to,",
+    "which lane it lives in, whether it costs quota, and which nodes are human decisions.",
+    "An eval asserts every derived node has an entry here, so adding a workflow forces",
+    "someone to say what it is for before CI will pass.",
+    "",
+    "lane: human | local | github | external",
+    "stage: 1..6, or null for things that are not tied to one stage",
+    "cost: free | agent | interactive"
+  ],
+  "wf:agent-intent": {
+    "lane": "github",
+    "stage": 1,
+    "cost": "agent",
+    "note": "drafts intent.md, opens a PR"
+  },
+  "wf:claude": {
+    "lane": "github",
+    "stage": 3,
+    "cost": "agent",
+    "note": "the steering wheel"
+  },
+  "wf:verify": {
+    "lane": "github",
+    "stage": 4,
+    "cost": "free",
+    "note": "build · links · evals · format"
+  },
+  "wf:preview": {
+    "lane": "github",
+    "stage": 5,
+    "cost": "free",
+    "note": "every PR gets a live URL"
+  },
+  "wf:claude-code-review": {
+    "lane": "github",
+    "stage": 5,
+    "cost": "agent",
+    "note": "reviews the diff, comments"
+  },
+  "wf:deploy": {
+    "lane": "github",
+    "stage": 5,
+    "cost": "free",
+    "note": "builds, then waits at the gate"
+  },
+  "wf:bands": {
+    "lane": "github",
+    "stage": 6,
+    "cost": "free",
+    "note": "a breach opens an issue"
+  },
+  "env:preview": {
+    "lane": "github",
+    "stage": 5,
+    "gate": false,
+    "note": "scoped to /sdlc-preview/",
+    "trigger": "preview.yml — no approval"
+  },
+  "env:production": {
+    "lane": "github",
+    "stage": 5,
+    "gate": true,
+    "note": "required reviewer",
+    "trigger": "deploy.yml — waits for a human"
+  },
+  "skill:intent": {
+    "lane": "local",
+    "stage": 1,
+    "cost": "interactive",
+    "note": "problem, not solution",
+    "trigger": "/intent, or the intent agent"
+  },
+  "skill:spec": {
+    "lane": "local",
+    "stage": 2,
+    "cost": "interactive",
+    "note": "numbered decisions, with reasons",
+    "trigger": "/spec, after an intent"
+  },
+  "skill:house-style": {
+    "lane": "local",
+    "stage": 3,
+    "cost": "interactive",
+    "note": "design constraints, applied",
+    "trigger": "auto — any edit under site/"
+  },
+  "skill:ship": {
+    "lane": "local",
+    "stage": 5,
+    "cost": "interactive",
+    "note": "PR body, verification, focus",
+    "trigger": "/ship, once verify passes"
+  },
+  "agent:simplifier": {
+    "lane": "local",
+    "stage": 3,
+    "cost": "interactive",
+    "note": "reduces; no behaviour change",
+    "trigger": "asked, before opening a PR"
+  },
+  "agent:verifier": {
+    "lane": "local",
+    "stage": 4,
+    "cost": "interactive",
+    "note": "reports a verdict only",
+    "trigger": "asked, before claiming done"
+  },
+  "hook:protect-guardrails": {
+    "lane": "local",
+    "stage": null,
+    "cost": "free",
+    "note": "denies edits to workflows, settings, hooks"
+  },
+  "hook:protect-approved": {
+    "lane": "local",
+    "stage": null,
+    "cost": "free",
+    "note": "accepted artifacts are frozen"
+  },
+  "hook:guard-bash": {
+    "lane": "local",
+    "stage": null,
+    "cost": "free",
+    "note": "force-push, reset --hard, curl | sh"
+  },
+  "hook:format": {
+    "lane": "local",
+    "stage": null,
+    "cost": "free",
+    "note": "prettier on every touched file"
+  },
+  "hook:audit": {
+    "lane": "local",
+    "stage": null,
+    "cost": "free",
+    "note": "one line per agent write"
+  },
+  "svc:claude": {
+    "lane": "external",
+    "stage": 3,
+    "note": "CI bills the same weekly quota",
+    "trigger": "every agent run, local and CI"
+  },
+  "svc:ftp": {
+    "lane": "external",
+    "stage": 5,
+    "note": "two accounts, each chrooted",
+    "trigger": "preview and deploy jobs only"
+  },
+  "svc:slack": {
+    "lane": "external",
+    "stage": 6,
+    "note": "notified, never asked",
+    "trigger": "deploy done · band breached"
+  },
+  "_decisions": [
+    {
+      "id": "dec:intent",
+      "stage": 1,
+      "label": "accept the intent"
+    },
+    {
+      "id": "dec:spec",
+      "stage": 2,
+      "label": "accept the spec"
+    },
+    {
+      "id": "dec:plan",
+      "stage": 3,
+      "label": "accept the plan"
+    },
+    {
+      "id": "dec:merge",
+      "stage": 5,
+      "label": "approve + merge the PR"
+    },
+    {
+      "id": "dec:deploy",
+      "stage": 5,
+      "label": "approve the deployment"
+    },
+    {
+      "id": "dec:triage",
+      "stage": 6,
+      "label": "triage: apply `intent`"
+    }
+  ]
+}
