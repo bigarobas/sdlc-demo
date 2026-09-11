@@ -51,6 +51,13 @@
     "cost": "free",
     "note": "a breach opens an issue"
   },
+  "wf:security": {
+    "lane": "github",
+    "stage": 4,
+    "cost": "free",
+    "trigger": "cron · manual · dependency change",
+    "note": "npm audit; agent half is a shell"
+  },
   "env:preview": {
     "lane": "github",
     "stage": 5,
