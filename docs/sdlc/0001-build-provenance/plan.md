@@ -20,6 +20,18 @@ weaker half.
 
 Each step is independently checkable. Stop at any of them if the check fails.
 
+**Step 0 comes first, and originally did not.** An earlier draft of this plan put the workflow
+variables last, on the reasoning that they cannot be tested before merging. That was the wrong
+conclusion from a true premise: without `BUILD_ENV`, a preview build falls back to `local` and
+renders no marker and no pull request number — so the preview of the implementation would show
+the three things worth reviewing all switched off. Setting the variables first costs nothing,
+because a variable nothing reads yet is inert.
+
+**0. `proposals/.github/workflows/deploy.yml` and `preview.yml`** — add `BUILD_ENV`, and
+`PR_NUMBER` for preview. Guardrail files, so a human installs them. Nothing reads these yet.
+
+*Check:* the workflows still parse and still run. Nothing visible changes.
+
 **1. `scripts/build-info.mjs`** — the generator. No dependencies; reads `process.env` and
 shells out to `git` only when CI variables are absent.
 
@@ -63,9 +75,10 @@ exists, and the build time. Absent values render as absent.
 be legible in a cropped screenshot, which is its entire reason for existing; it does **not**
 use the accent pink, which means a human decision and nothing else.
 
-**7. `proposals/.github/workflows/deploy.yml` and `preview.yml`** — `BUILD_ENV`, and
-`PR_NUMBER` for preview. Guardrail files, so they go through `proposals/` for a human to
-install. **This is the last step and the only one that cannot be checked before merging.**
+Steps 1–6 are the implementation, and step 0 is in place before they run — so the preview of
+that pull request shows the environment, the pull request number and the marker actually
+working. That is the only way to judge whether the marker is legible, which is the one
+question the preview exists to answer.
 
 ## How completion is proven
 
@@ -77,10 +90,18 @@ Before the pull request:
 - the footer renders locally with `local`, a SHA and no PR
 - `git status` clean after a build
 
-After merging, and **not before** — these depend on workflow variables only CI supplies:
+On the implementation pull request's **preview**, before merging — this is what reordering
+step 0 bought:
 
-- the preview build shows `preview`, the PR number, and the nav marker
-- the production deploy shows `production`, a SHA, and the PR number from the squash subject
+- the preview shows `preview`, the real pull request number, and the nav marker
+- the marker is legible in a screenshot cropped to the middle of the page, which is the whole
+  reason it lives in the nav rather than the footer (spec D7)
+
+Only after merging, because nothing else can supply it:
+
+- the production deploy shows `production`, a SHA, and the PR number parsed from the squash
+  commit subject — the single value in this feature derived by parsing rather than by being
+  told, and so the one most likely to be wrong
 
 ## Risks
 
@@ -94,5 +115,6 @@ After merging, and **not before** — these depend on workflow variables only CI
 
 ## Not in this plan
 
-Steps 1–6 are one pull request. Step 7 is a second one, because a human installs workflow
-changes and bundling them would block the whole thing behind that handoff.
+Step 0 is its own pull request, because a human installs workflow changes. Steps 1-6 are a
+second. Bundling them would mean the implementation waits on the handoff, and would also
+leave the preview unable to demonstrate the feature it is previewing.
