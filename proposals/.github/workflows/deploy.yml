@@ -94,10 +94,19 @@ jobs:
       - name: Tell Slack a deploy is waiting
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         run: |
-          payload=$(printf '{"text":"Deploy waiting for approval — %s\\n%s/actions/runs/%s"}' \
-            "${{ github.event.head_commit.message }}" \
-            "${{ github.server_url }}/${{ github.repository }}" \
-            "${{ github.run_id }}")
+          # The SUBJECT, not the message. `head_commit.message` is subject plus body, and a
+          # squash merge puts the whole pull request description in there — the first of these
+          # notifications carried several hundred words to say "click something".
+          #
+          # And built with jq, not printf. The hand-rolled version interpolated a commit
+          # message straight into a JSON string: it happened to work, but raw newlines inside
+          # a JSON string are invalid, and one apostrophe or backslash in a commit subject
+          # would have broken the payload. digest.yml already used jq for this reason; this
+          # step did not, in the same pull request.
+          subject=$(git log -1 --pretty=%s)
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          payload=$(jq -n --arg s "$subject" --arg u "$run_url" \
+            '{text: ("Deploy waiting for approval — " + $s + "\n" + $u)}')
           code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
           [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
@@ -147,8 +156,13 @@ jobs:
       - name: Notify Slack
         if: ${{ success() && env.SLACK_WEBHOOK_URL != '' }}
         run: |
-          payload=$(printf '{"text":"Deployed to https://rashid.fr/sdlc/ — approved by %s, commit %s"}' \
-            "${{ github.actor }}" "${{ github.sha }}")
+          # Short SHA from the environment, not from git: this job never checks the repository
+          # out — it only downloads the artifact the build job produced — so there is no
+          # working tree here to ask.
+          payload=$(jq -n \
+            --arg a "${{ github.actor }}" \
+            --arg s "${GITHUB_SHA:0:7}" \
+            '{text: ("Deployed to https://rashid.fr/sdlc/ — approved by " + $a + ", commit " + $s)}')
           code=$(curl -sS -o /tmp/slack.out -w '%{http_code}' \
             -X POST -H 'Content-type: application/json' \
             --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
