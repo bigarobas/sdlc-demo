@@ -17,7 +17,12 @@ export const isPreview = build?.env === 'preview';
 
 const REPO = 'https://github.com/bigarobas/sdlc-demo';
 
-export const commitUrl = build?.shaFull ? `${REPO}/commit/${build.shaFull}` : null;
+// Local builds show the SHA but do not link it. A commit on your machine may not exist on
+// GitHub yet, so the link would 404 — which the link checker duly caught, failing `npm run
+// verify` on any branch with unpushed work. The same rule the rest of this file follows:
+// state what is known, claim nothing that cannot be relied on.
+export const commitUrl =
+  build?.shaFull && build.env !== 'local' ? `${REPO}/commit/${build.shaFull}` : null;
 export const prUrl = build?.pr ? `${REPO}/pull/${build.pr}` : null;
 
 /** Minutes matter, seconds do not. UTC, because a build has no local time. */

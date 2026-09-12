@@ -26,7 +26,25 @@ const base = import.meta.env.BASE_URL;
               Production shows nothing — the absence is the signal. [spec D7] */}
           {isPreview && <span class="env-marker">PREVIEW</span>}
         </div>
-        <ol>
+        {/* Below 60rem this bar is the navigation: where you are on the left, a way in on
+            the right. Above it, both are hidden and the list is simply always there. */}
+        <div class="nav-bar">
+          <span class="nav-here" data-nav-here>
+            AI-native SDLC
+          </span>
+          <button
+            class="nav-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="nav-sections"
+          >
+            Sections
+          </button>
+        </div>
+
+        {/* aria-expanded and aria-controls, not just a class: a button whose only state is a
+            CSS class is invisible to anything not looking at pixels. */}
+        <ol id="nav-sections">
           {sections.map((s: { slug: string; title: string }, i: number) => (
             <li>
               <a href={`#${s.slug}`} data-nav-for={s.slug}>
@@ -61,11 +79,24 @@ const base = import.meta.env.BASE_URL;
       const sections = [...document.querySelectorAll<HTMLElement>('.section[id]')];
       let current: string | null = null;
 
+      // One piece of state, two readers: the highlight in the list, and the label in the
+      // mobile bar. They cannot disagree about which section you are in, because there is
+      // only one answer. [spec D4]
+      const here = document.querySelector<HTMLElement>('[data-nav-here]');
+      const hereDefault = here?.textContent ?? '';
+
       const setCurrent = (id: string | null) => {
         if (id === current) return;
         if (current) links.get(current)?.removeAttribute('aria-current');
         if (id) links.get(id)?.setAttribute('aria-current', 'true');
         current = id;
+
+        if (here) {
+          const link = id ? links.get(id) : null;
+          const n = link?.querySelector('.nav-n')?.textContent ?? '';
+          const t = link?.querySelector('.nav-t')?.textContent ?? '';
+          here.textContent = link ? `${n} · ${t}` : hereDefault;
+        }
       };
 
       if ('IntersectionObserver' in window && sections.length) {
@@ -84,6 +115,29 @@ const base = import.meta.env.BASE_URL;
           { rootMargin: '-12% 0px -70% 0px', threshold: 0 },
         );
         sections.forEach((s) => observer.observe(s));
+      }
+
+      // --- 1b. Open and close the list on small screens ----------------------------------
+      // CSS decides whether any of this is visible; the script only tracks open/closed, so
+      // there is no breakpoint duplicated between the two.
+      const nav = document.querySelector<HTMLElement>('.nav');
+      const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+
+      if (nav && toggle) {
+        const setOpen = (open: boolean) => {
+          nav.toggleAttribute('data-open', open);
+          toggle.setAttribute('aria-expanded', String(open));
+        };
+
+        toggle.addEventListener('click', () => {
+          setOpen(!nav.hasAttribute('data-open'));
+        });
+
+        // A menu that stays open over the thing you just navigated to is a menu you have to
+        // dismiss twice.
+        nav.querySelectorAll('a[data-nav-for]').forEach((a) => {
+          a.addEventListener('click', () => setOpen(false));
+        });
       }
 
       // --- 2. Let the diagram be looked at properly --------------------------------------
