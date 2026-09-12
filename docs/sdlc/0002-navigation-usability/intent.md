@@ -1,6 +1,6 @@
 # Intent 0002 — Improve the section navigation
 
-- **Status:** draft
+- **Status:** accepted
 - **Author:** claude[bot] (drafted from GitHub issue #34, reported by bigarobas)
 - **Date:** 2026-09-12
 
