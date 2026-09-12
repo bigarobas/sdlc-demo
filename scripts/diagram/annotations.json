@@ -21,11 +21,17 @@
     "cost": "agent",
     "note": "the steering wheel"
   },
+  "wf:checks": {
+    "lane": "github",
+    "stage": 4,
+    "cost": "free",
+    "note": "format, evals, diagram — no build"
+  },
   "wf:verify": {
     "lane": "github",
     "stage": 4,
     "cost": "free",
-    "note": "build · links · evals · format"
+    "note": "build + links, both bases — app changes only"
   },
   "wf:preview": {
     "lane": "github",
