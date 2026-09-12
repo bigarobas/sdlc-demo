@@ -57,6 +57,12 @@
     "cost": "free",
     "note": "a breach opens an issue"
   },
+  "wf:digest": {
+    "lane": "github",
+    "stage": 6,
+    "cost": "free",
+    "note": "weekly: what is waiting on a human"
+  },
   "wf:security": {
     "lane": "github",
     "stage": 4,

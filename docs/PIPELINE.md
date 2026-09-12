@@ -56,6 +56,7 @@ flowchart LR
     direction TB
     dec_triage{"triage: apply `intent`"}
     wf_bands[["Control bands<br/><small>▸ cron · manual</small>"]]
+    wf_digest[["SDLC digest<br/><small>▸ cron · manual</small>"]]
     svc_slack>"Slack<br/><small>▸ deploy done · band breached</small>"]
   end
   subgraph HOOKS["Hooks · deterministic, not negotiable"]
@@ -84,7 +85,7 @@ flowchart LR
 
 - **Pink** marks a human decision or the production gate. Nothing else is pink.
 - **▸** is what triggers a thing, not what it does.
-- 9 workflows, 2 environments, 5 hooks, 5 skills, 2 subagents, 3 services.
+- 10 workflows, 2 environments, 5 hooks, 5 skills, 2 subagents, 3 services.
 - 3 of them spend Claude quota: `Agent — draft intent`, `Claude Code Review`, `Claude Code`. Everything else is free.
 
 A rendered SVG of the same model, themed for light and dark, is on
