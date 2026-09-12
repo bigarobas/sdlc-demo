@@ -12,3 +12,8 @@ site/.astro/
 # still exists locally and is still the live evidence of what the agent touched — it is just
 # not tracked. Commit a snapshot deliberately with `git add -f` if one is ever wanted.
 docs/sdlc/audit-log.md
+
+# Generated before every build and different every time, so committing it would mean a
+# dirty tree after each one. Its neighbour site/src/generated/pipeline.svg IS committed,
+# because that one has to be drift-checked. Same directory, opposite reasons.
+site/src/generated/build-info.json
