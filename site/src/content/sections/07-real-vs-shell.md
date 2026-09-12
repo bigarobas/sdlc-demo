@@ -4,8 +4,10 @@ title: What is real here, and what is a shell
 stage: honesty
 ---
 
-A demo that hides its gaps teaches the wrong lesson. Everything above is running. These three
-are deliberately hollow, and the reason is the same in each case: cost.
+A demo that hides its gaps teaches the wrong lesson. Everything above is running. Four things
+are not, and they fail in two different ways. The first three are hollow on purpose, and the
+reason is the same in each case: cost. The fourth is not hollow at all — it is fully built and
+it does not reliably work, which is the more uncomfortable kind of gap to label.
 
 ### Evals <span class="shell">partial</span>
 
@@ -42,8 +44,10 @@ model says before it stops is:
 > complete before continuing.
 
 It spawns background subagents, yields its turn to wait for them, and the session ends.
-Nothing wakes it. That is a race, which is why six runs have durations with no pattern
-whatsoever: 137s, 5m49s, 23s, 9m11s, 57s.
+Nothing wakes it. That is a race, and the giveaway is that the durations have no pattern
+whatsoever: 23s, 57s, 137s, 349s, 551s. Twenty runs later the spread has the same shape —
+12s at one end, 534s at the other, and nothing about a given pull request that predicts
+which you get.
 
 **When it wins the race it is very good.** On the run that worked it produced seven findings
 in thirty-five turns, two of which were about to break the live demo: an issue template that

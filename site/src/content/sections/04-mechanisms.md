@@ -10,9 +10,11 @@ A skill is a markdown file in `.claude/skills/<name>/SKILL.md` that the agent lo
 becomes relevant. The difference from a prompt you paste is that a skill is versioned,
 reviewed, and applied without anyone remembering to apply it.
 
-This repository has four: `intent`, `spec` and `ship` hold the artifact templates and the
+This repository has five. `intent`, `spec` and `ship` hold the artifact templates and the
 questions each stage has to answer. `house-style` holds the design and prose constraints for
 this site — including a rule about asset paths that exists because that exact bug shipped once.
+`sdlc` is the orchestrator: given an id it reads which artifacts already exist and does the
+one stage that is actually next, rather than being told which stage to do.
 
 ### Hooks — the deterministic layer
 

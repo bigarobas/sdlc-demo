@@ -21,16 +21,20 @@ the terminal**. That single fact drove most of the architecture.
 | Intent agent, tools granted        | wrote the artifact, opened a PR    | ~$0.19    |
 | Control-band check → issue → Slack | full monitoring loop               | **$0.00** |
 
-Most of that's agent spend bought nothing, and all of it went on a single
-misconfigured cost control. The most expensive thing in this repository is a review that works, at roughly twenty-five
-times the cost of one that does not, and about twenty times a full monitoring cycle. The
-cheapest is the part that closes the loop.
+Three of those eight rows bought nothing at all — $3.03 of the total, and only $2.80 of it on
+the misconfigured cost control. The other two were a run that lost its own race and an agent
+that was never given the tools to do the thing it was asked to do. The most expensive item
+here is a review that works: roughly twenty-five times the cost of one that silently does not,
+and twenty times the cost of the intent agent actually drafting an artifact. The cheapest is
+the part that closes the loop, which costs nothing because nothing in it is a model.
 
 ## What that bought, in decisions
 
 - **Three agent workflows, no more.** Each has a `timeout-minutes` and a `concurrency` group.
-  None has a turn limit any more, for the reason above. The review does not trigger on
-  `synchronize`, because that would start a fresh run on every push to a branch.
+  The review has no turn limit any more, for the reason above; `claude.yml` still carries
+  `--max-turns 20` and probably should not, which is the sort of thing that survives because
+  nothing red ever happens to it. The review does not trigger on `synchronize`, because that
+  would start a fresh run on every push to a branch.
 - **Stages 4 and 6 spend nothing.** Build, link check, evals, formatting, the diagram drift
   check and control-band monitoring are all deterministic. The stages that must not fail
   during a demo are the stages that cannot fail for quota reasons.

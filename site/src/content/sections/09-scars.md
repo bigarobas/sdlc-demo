@@ -35,9 +35,11 @@ on the laptop.
 **A cost control that cost money and produced nothing.** `--max-turns` was added to the review
 workflow to bound spend. It bounded the work instead: two runs stopped mid-review, at 8 turns
 and then at 25, and posted nothing at all. Roughly $2.80 of quota for zero reviews. A cap that
-halts work halfway is strictly worse than either finishing or never starting. Deleting it
-fixed the problem — `timeout-minutes` was the right instrument all along, because wall-clock
-time is what actually tracks spend.
+halts work halfway is strictly worse than either finishing or never starting. Deleting it from
+that workflow fixed the problem — `timeout-minutes` was the right instrument all along,
+because wall-clock time is what actually tracks spend. The lesson only got applied where it
+hurt, though: `claude.yml` still passes `--max-turns 20`, and a comment at the top of that
+file still describes it as a deliberate cap.
 
 **An agent that succeeded in six seconds having done nothing.** The intent-drafting workflow
 ran, exited zero, and wrote no file, opened no pull request, left no comment. Automation mode

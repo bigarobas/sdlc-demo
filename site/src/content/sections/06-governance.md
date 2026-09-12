@@ -42,8 +42,12 @@ That sounds alarming and mostly is not, because the platform already draws the l
 right place. **Secrets are never passed to a workflow triggered from a fork**, and the token
 such a run does get is read-only. A stranger's pull request can spend CI minutes; it cannot
 reach the FTP credential or the Claude quota, because neither exists on its side of the fence.
-The `@claude` workflow adds its own check — it verifies the triggering user has write access
-before it starts.
+The `@claude` workflow is the one place a stranger's words reach an agent directly, since it
+triggers on any issue or comment containing `@claude`. What stops that being a problem is the
+action, not this repository: `claude-code-action` checks that the person who triggered it has
+write access, and refuses otherwise. Worth stating precisely, because reading the workflow
+file will not show you that check — it is a default of the action, and defaults can change
+under you. The repository's own guard is the one below it.
 
 Two things were added on top:
 
