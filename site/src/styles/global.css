@@ -408,3 +408,75 @@ footer {
 .diagram:fullscreen svg {
   max-height: calc(100vh - 4rem);
 }
+
+/* --- build provenance --- */
+
+/* The preview marker. Deliberately not the accent pink, which means "a human decides here"
+   and nothing else — this is a statement about the build, not a decision point. It has to be
+   legible in a screenshot cropped to the middle of the page, which is the whole reason it
+   sits in the nav. */
+.env-marker {
+  display: inline-block;
+  margin-left: 0.5em;
+  padding: 0.1em 0.45em;
+  border-radius: 3px;
+  background: #b8860b;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  vertical-align: 0.15em;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .env-marker {
+    background: #e0a82e;
+    color: #0a0528;
+  }
+}
+
+:root[data-theme='dark'] .env-marker {
+  background: #e0a82e;
+  color: #0a0528;
+}
+
+.build-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: baseline;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.build-info code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.build-env {
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.build-env-preview {
+  color: #b8860b;
+}
+
+.build-env-local {
+  color: var(--muted);
+}
+
+.build-dirty {
+  font-style: italic;
+}
+
+.build-time {
+  margin-left: auto;
+}
