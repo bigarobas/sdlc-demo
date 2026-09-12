@@ -88,7 +88,18 @@ jobs:
           VERIFY_BASE: sdlc-preview
         run: npm run verify
 
+      # BUILD_ENV marks this build as a preview, which is what puts the marker in the nav so
+      # a cropped screenshot cannot be mistaken for production. PR_NUMBER comes straight from
+      # the event here — production has to parse it out of a commit subject instead, which is
+      # the fragile half of the same feature.
+      #
+      # Nothing reads either until intent 0001 ships. They are set first on purpose: without
+      # them, the preview of that implementation would render the marker and the number
+      # switched off, which are precisely the parts worth reviewing.
       - name: Build for preview
+        env:
+          BUILD_ENV: preview
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: >-
           npm --prefix site run build --
           --site https://rashid.fr
