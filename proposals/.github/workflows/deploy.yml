@@ -43,6 +43,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    # Job level, not step level. A step's own `env:` block is not visible to that step's
+    # `if:`, so guarding on it there silently evaluates to empty and the step never runs.
+    # Written down in the deploy job below too, because I made this mistake twice.
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
     steps:
       - uses: actions/checkout@v7
 
@@ -75,6 +82,25 @@ jobs:
           name: site
           path: site/dist/
           retention-days: 7
+
+      # The notification that was missing. The Slack step in the deploy job below runs AFTER
+      # the gate, so the channel learned about successful deploys and never about waiting
+      # ones — which is how a deploy sat unapproved for seventeen hours while production
+      # served five-merge-old content and nothing said so.
+      #
+      # This fires here, at the end of the build, because the next thing that happens is a
+      # human being needed. A notification that requires nothing of anyone is noise; this one
+      # is the only thing standing between a merge and a live site.
+      - name: Tell Slack a deploy is waiting
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          payload=$(printf '{"text":"Deploy waiting for approval — %s\\n%s/actions/runs/%s"}' \
+            "${{ github.event.head_commit.message }}" \
+            "${{ github.server_url }}/${{ github.repository }}" \
+            "${{ github.run_id }}")
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
+          [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
 
   deploy:
     needs: build

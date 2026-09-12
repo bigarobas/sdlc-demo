@@ -4,6 +4,11 @@ import { isPreview } from '../lib/build-info.js';
 
 const { title, description, sections } = Astro.props;
 const base = import.meta.env.BASE_URL;
+
+// Absolute, because a relative URL in an og: tag is worth nothing — the crawler reading it is
+// not on this page. Astro.site is set per environment on the build command line, so preview
+// and production each unfurl to themselves rather than both claiming to be production.
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : null;
 ---
 
 <html lang="en">
@@ -15,6 +20,18 @@ const base = import.meta.env.BASE_URL;
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     <title>{title}</title>
     <meta name="description" content={description} />
+
+    {/* Four lines instead of a headless browser. Slack, Teams and anything else that unfurls
+        a link now shows a card with the title and description, everywhere the URL is pasted
+        — not only in the one notification a screenshot step would have covered. No image:
+        generating one would mean rendering the page, which is the cost this avoids. */}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AI-native SDLC" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    <meta name="twitter:card" content="summary" />
   </head>
   <body>
     <div class="layout">

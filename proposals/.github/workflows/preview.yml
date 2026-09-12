@@ -64,6 +64,9 @@ jobs:
       contents: read
       pull-requests: write
 
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
     environment:
       name: preview
       url: https://rashid.fr/sdlc-preview/
@@ -148,3 +151,18 @@ jobs:
             } else {
               await github.rest.issues.createComment({ owner, repo, issue_number, body });
             }
+
+      # Only when a pull request opens or is marked ready — never on synchronize. A ping for
+      # every push to a branch is the kind of notification people mute, and a muted channel is
+      # where the deploy-waiting message would have died too.
+      - name: Tell Slack a preview is up
+        if: >-
+          ${{ env.SLACK_WEBHOOK_URL != '' &&
+              (github.event.action == 'opened' || github.event.action == 'ready_for_review') }}
+        run: |
+          payload=$(printf '{"text":"Preview ready for #%s — %s\nhttps://rashid.fr/sdlc-preview/"}' \
+            "${{ github.event.pull_request.number }}" \
+            "${{ github.event.pull_request.title }}")
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
+          [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
