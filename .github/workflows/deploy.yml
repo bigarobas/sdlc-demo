@@ -156,13 +156,22 @@ jobs:
       - name: Notify Slack
         if: ${{ success() && env.SLACK_WEBHOOK_URL != '' }}
         run: |
+          # unfurl_links: Slack suppresses link previews on messages posted by a bot unless
+          # the payload asks for them. The OpenGraph tags were added and the unfurling was
+          # never switched on, so there was nothing to see. Only the messages that link the
+          # site get this — a card for a workflow run page adds nothing anyone wants.
+          #
+          # Note there is no image in that card: og:image was deliberately left out, because
+          # generating one means rendering the page, which is the cost the tags avoided.
+          #
           # Short SHA from the environment, not from git: this job never checks the repository
           # out — it only downloads the artifact the build job produced — so there is no
           # working tree here to ask.
           payload=$(jq -n \
             --arg a "${{ github.actor }}" \
             --arg s "${GITHUB_SHA:0:7}" \
-            '{text: ("Deployed to https://rashid.fr/sdlc/ — approved by " + $a + ", commit " + $s)}')
+            '{text: ("Deployed to https://rashid.fr/sdlc/ — approved by " + $a + ", commit " + $s),
+               unfurl_links: true, unfurl_media: true}')
           code=$(curl -sS -o /tmp/slack.out -w '%{http_code}' \
             -X POST -H 'Content-type: application/json' \
             --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
