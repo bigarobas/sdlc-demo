@@ -31,6 +31,16 @@ name: Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    # The app boundary. A change outside these paths cannot alter the built site, so
+    # building or deploying it would prove nothing. Repeated in verify.yml, preview.yml and
+    # deploy.yml: GitHub cannot share a path list between workflows, so the duplication is
+    # deliberate and each copy carries this note.
+    paths:
+      - 'site/**'
+      - '.nvmrc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/preview.yml'
 
 concurrency:
   group: preview

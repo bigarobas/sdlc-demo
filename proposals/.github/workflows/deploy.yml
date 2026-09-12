@@ -14,6 +14,16 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # The app boundary. A change outside these paths cannot alter the built site, so
+    # building or deploying it would prove nothing. Repeated in verify.yml, preview.yml and
+    # deploy.yml: GitHub cannot share a path list between workflows, so the duplication is
+    # deliberate and each copy carries this note.
+    paths:
+      - 'site/**'
+      - '.nvmrc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 # cancel-in-progress: true, learned the hard way. A run parked at the environment gate still
