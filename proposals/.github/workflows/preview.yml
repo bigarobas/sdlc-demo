@@ -164,7 +164,8 @@ jobs:
           payload=$(jq -n \
             --arg n "${{ github.event.pull_request.number }}" \
             --arg t "${{ github.event.pull_request.title }}" \
-            '{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/")}')
+            '{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/"),
+              unfurl_links: true, unfurl_media: true}')
           code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
           [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
