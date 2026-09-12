@@ -41,11 +41,24 @@ concurrency:
 
 jobs:
   claude-review:
+    # Two conditions, both about not starting a run that cannot finish.
+    #
     # Same-repository pull requests only. On a public repository anyone can open a fork pull
     # request; GitHub withholds the OAuth token from those, so the run would fail rather than
     # spend quota — but not starting is cheaper and clearer. Review outside contributions by
     # hand, or push the branch to this repository first.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    #
+    # And not on pull requests opened by a bot. `agent-intent.yml` drafts an intent and opens
+    # a pull request as claude[bot]; that triggered this workflow, which then refused with
+    # "Workflow initiated by non-human actor" and left a red X on every drafted intent.
+    #
+    # The action offers `allowed_bots` to permit it. Declining that on purpose: it would let
+    # an agent's pull request start another agent run, which is the recursion the check exists
+    # to prevent, in exchange for reviewing one markdown file against a template it was just
+    # generated from. Skipping is the honest version of the same outcome, and costs nothing.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
