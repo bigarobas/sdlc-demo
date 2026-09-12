@@ -12,7 +12,27 @@ name: Verify
 on:
   push:
     branches: [main]
+    # The app boundary. A change outside these paths cannot alter the built site, so
+    # building or deploying it would prove nothing. Repeated in verify.yml, preview.yml and
+    # deploy.yml: GitHub cannot share a path list between workflows, so the duplication is
+    # deliberate and each copy carries this note.
+    paths:
+      - 'site/**'
+      - '.nvmrc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/verify.yml'
   pull_request:
+    # The app boundary. A change outside these paths cannot alter the built site, so
+    # building or deploying it would prove nothing. Repeated in verify.yml, preview.yml and
+    # deploy.yml: GitHub cannot share a path list between workflows, so the duplication is
+    # deliberate and each copy carries this note.
+    paths:
+      - 'site/**'
+      - '.nvmrc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/verify.yml'
 
 concurrency:
   group: verify-${{ github.ref }}

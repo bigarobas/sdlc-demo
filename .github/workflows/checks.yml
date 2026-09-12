@@ -1,0 +1,48 @@
+name: Checks
+
+# The process half of the pipeline. Runs on everything, builds nothing.
+#
+# Formatting, the eval suite and the diagram drift check — about four seconds of work. These
+# are the things a change to docs/sdlc/**, .claude/** or a workflow file can actually break:
+# a hook that stopped denying, an artifact missing a required section, a diagram that no
+# longer matches the code.
+#
+# Its counterpart, verify.yml, builds the site and is triggered only by changes that could
+# affect the built output. Two workflows with complementary triggers rather than one workflow
+# deciding at runtime: no changed-files action to maintain, and the trigger list of each file
+# says plainly what that file is about.
+#
+# A change touching both halves runs both. They are independent jobs, so they run in
+# parallel, and the four seconds of overlap is not worth a mechanism to avoid.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      # Only the root install: nothing here touches Astro, so site/node_modules is not needed.
+      - name: Install
+        run: npm ci
+
+      - name: Check
+        run: npm run check
