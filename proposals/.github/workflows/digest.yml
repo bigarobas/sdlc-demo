@@ -1,0 +1,74 @@
+name: SDLC digest
+
+# Monday morning: where every piece of work has got to, in the channel.
+#
+# The other Slack messages are events — something happened, someone may be needed. This is
+# the opposite: a standing answer to "what is in flight and what is waiting on me", which is
+# the question you cannot answer from a stream of notifications no matter how many there are.
+#
+# It runs `npm run intents`, which is a script and not a model: the same answer every time,
+# no tokens, and it already computes exactly this. The workflow only posts what the script
+# prints.
+#
+# Deliberately weekly, not daily. A digest that arrives every morning becomes wallpaper, and
+# the whole reason this pipeline notifies at all is that the deploy-waiting message once went
+# unnoticed for seventeen hours in a channel that was already full of successful deploys.
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Monday 08:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: digest
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # `gh` inside the script needs this; without it the script degrades to listing only the
+      # artifacts on disk and says so rather than guessing.
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Collect
+        id: collect
+        run: |
+          npm run intents --silent > digest.txt 2>&1 || true
+          {
+            echo 'body<<DIGEST'
+            cat digest.txt
+            echo DIGEST
+          } >> "$GITHUB_OUTPUT"
+          cat digest.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post to Slack
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
+        run: |
+          # jq builds the JSON so a stray quote or backslash in a section title cannot break
+          # the payload — the kind of thing that would fail once, months from now, on the one
+          # intent someone gave an apostrophe to.
+          payload=$(jq -n --arg d "${{ steps.collect.outputs.body }}" \
+            '{text: ("*SDLC digest*\n```" + $d + "```")}')
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
+          [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
