@@ -61,7 +61,13 @@ jobs:
       - name: Verify
         run: npm run verify
 
+      # BUILD_ENV is read by scripts/build-info.mjs, which stamps the footer with what this
+      # build is. Stated explicitly rather than inferred from the base path or the hostname:
+      # both of those have already changed once, and an inferred answer changes with them.
+      # Nothing reads this until intent 0001 ships; a variable nobody reads is inert.
       - name: Build for production
+        env:
+          BUILD_ENV: production
         run: npm --prefix site run build -- --site https://rashid.fr --base /sdlc/
 
       - uses: actions/upload-artifact@v7
