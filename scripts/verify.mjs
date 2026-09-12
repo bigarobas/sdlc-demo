@@ -8,6 +8,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import { LinkChecker } from 'linkinator';
+import { runChecks } from './check.mjs';
 
 // Accept the base with or without slashes and normalise to `/x/y/`.
 // Git Bash on Windows rewrites a leading-slash value like `/sdlc-preview/`
@@ -120,13 +121,11 @@ try {
 
 if (failed) process.exit(1);
 
-console.log(`\n▶ evals`);
-run(['run', 'check:evals'], 'evals');
-
-// The diagram is a build artifact, so a stale one is a failing build — not a stale picture
-// somebody notices six months later.
-console.log(`\n▶ diagram`);
-run(['run', 'check:diagram'], 'diagram drift check');
+// Formatting, evals and the diagram drift check live in check.mjs, which is also the whole
+// of `npm run check`. They are the half of this that a documentation change can break, and
+// they need no build — which is why CI runs them on everything and the build only on changes
+// that could affect it.
+if (!runChecks()) process.exit(1);
 
 console.log('\n✓ verify passed');
 

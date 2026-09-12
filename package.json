@@ -14,7 +14,9 @@
     "check:evals": "node evals/run.mjs",
     "diagram": "node scripts/diagram.mjs",
     "check:diagram": "node scripts/diagram.mjs --check",
-    "intents": "node scripts/intents.mjs"
+    "intents": "node scripts/intents.mjs",
+    "check": "node scripts/check.mjs",
+    "check:format": "prettier --check ."
   },
   "devDependencies": {
     "linkinator": "^6.1.2",
