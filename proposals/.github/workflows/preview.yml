@@ -160,9 +160,11 @@ jobs:
           ${{ env.SLACK_WEBHOOK_URL != '' &&
               (github.event.action == 'opened' || github.event.action == 'ready_for_review') }}
         run: |
-          payload=$(printf '{"text":"Preview ready for #%s — %s\nhttps://rashid.fr/sdlc-preview/"}' \
-            "${{ github.event.pull_request.number }}" \
-            "${{ github.event.pull_request.title }}")
+          # jq, so a pull request title containing a quote cannot break the payload.
+          payload=$(jq -n \
+            --arg n "${{ github.event.pull_request.number }}" \
+            --arg t "${{ github.event.pull_request.title }}" \
+            '{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/")}')
           code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
           [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
