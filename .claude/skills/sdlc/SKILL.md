@@ -36,9 +36,10 @@ does not exist sends someone looking for a thing that was never there.
 
 ## Rules
 
-- **Never advance past an unaccepted artifact.** Building a plan on a spec nobody read means
-  discovering a wrong framing after paying for the implementation. The acceptance steps are
-  the cheap place to be wrong.
+- **Never advance past an unaccepted artifact** — without `--auto`. Building a plan on a spec
+  nobody read means discovering a wrong framing after paying for the implementation. The
+  acceptance steps are the cheap place to be wrong. `--auto` is the operator saying they
+  accept that trade for this one piece of work; see below.
 - **Never merge, never approve, never deploy.** Those are human acts, and two of them are
   structurally impossible anyway — `CODEOWNERS` prevents self-approval and the `production`
   environment holds the credential. Report the commands instead of attempting them.
@@ -65,12 +66,30 @@ It removes conversational pauses. It does not remove gates, and it cannot: the m
 deployment are still human, still logged, still enforced by machinery this skill has no access
 to.
 
+**`--auto` may accept a draft intent**, and should, as its first action.
+
+Naming an intent and asking for `--auto` _is_ the agreement that the framing is right. Making
+someone merge a drafting pull request and then merge a one-line acceptance is the same
+decision collected twice. The gate exists so a human agrees before work is built on the
+framing, and that agreement has been given.
+
+What must not disappear is the record. Accept it in **its own commit**, and say in the message
+that it was accepted by `--auto` on explicit instruction rather than read and accepted
+separately. A reviewer can then tell the two apart, which is the only thing the extra merge
+was really buying.
+
 Stop immediately, whatever `--auto` says, if:
 
-- the intent is not accepted — that acceptance is the whole point of the first gate;
+- the intent is **superseded**, or has no `intent.md` at all — there is nothing to agree to;
 - `npm run verify` fails — never open a red pull request;
-- the spec would have to invent a decision the intent left as an open question.
+- the spec would have to invent a decision the intent left as an open question. That is the
+  real limit: `--auto` may compress agreement, never manufacture it.
 
-Say plainly, in the pull request body, that spec and plan were produced without a human
-reading the spec first. The reviewer is then reviewing two decisions at once and should know
-it.
+Say plainly, in the pull request body, that the intent was accepted by `--auto`, and that the
+spec and plan were produced without anyone reading the spec before the plan was built on it.
+The reviewer is looking at three decisions in one diff and should know it.
+
+**When not to use it.** A small design space and a cheap mistake — a cosmetic change, a copy
+edit. Not when the spec has real choices in it: on intent 0001 the spec contained a mitigation
+that did not work, and catching it at plan time cost nothing, whereas `--auto` would have
+carried it into the implementation.
