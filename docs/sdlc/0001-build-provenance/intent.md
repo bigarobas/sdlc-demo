@@ -1,6 +1,6 @@
 # Intent 0001 — The page does not say which build it is
 
-- **Status:** draft
+- **Status:** accepted
 - **Author:** Claude Code (drafted from GitHub issue #15)
 - **Date:** 2026-09-11
 
