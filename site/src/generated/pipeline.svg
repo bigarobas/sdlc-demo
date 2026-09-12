@@ -90,6 +90,13 @@
 <text x="1044" y="460" class="box-note">a breach opens an issue</text>
 </g>
 <g class="box kind-workflow">
+<rect x="1034" y="482" width="176" height="60" rx="5"/>
+<path d="M1044 491 h11 v11 h-11 z M1048 494 l4.5 2.5 l-4.5 2.5 z" class="glyph "/>
+<text x="1062" y="499" class="box-label">SDLC digest</text>
+<text x="1044" y="514" class="box-trigger">▸ cron · manual</text>
+<text x="1044" y="528" class="box-note">weekly: what is waiting on a human</text>
+</g>
+<g class="box kind-workflow">
 <rect x="662" y="414" width="176" height="60" rx="5"/>
 <path d="M672 423 h11 v11 h-11 z M676 426 l4.5 2.5 l-4.5 2.5 z" class="glyph "/>
 <text x="690" y="431" class="box-label">Checks</text>
