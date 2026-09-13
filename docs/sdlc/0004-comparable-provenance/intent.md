@@ -35,6 +35,38 @@ It is worse than unanswerable. The two identifiers are not comparable even in pr
 Two footers agreeing on a SHA would prove nothing either, because a preview and a production
 build of identical content produce different SHAs by construction.
 
+### The stale base is not only a provenance problem
+
+Written above as a third way the footers mislead. Hours later it produced a wrong result,
+which reframes it.
+
+The Slack notification for the same preview arrived without a link card, while the production
+one unfurled correctly — both workflows having been given `unfurl_links: true`. The run log
+shows why. The payload the preview actually sent was:
+
+```
+'{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/")}'
+```
+
+No `unfurl_links`. It ran a version of `preview.yml` that no longer exists on `main`.
+
+The commit order explains it. `fb0d3e3` merged the proposals; `8431f21` installed them into
+`.github/workflows/`. The pull request's branch was cut from `fb0d3e3`, so its merge ref
+carries the pre-fix workflow, and a `pull_request` event runs the workflow from that merge
+ref. The preview was built _and announced_ by a file that had already been replaced.
+
+Nothing anywhere reported this. The run was green, the preview published, the notification
+sent, and the only symptom was a missing link card that looked like a Slack problem and cost
+an hour to trace to the right file.
+
+So a stale base is not only "the footer cannot tell you what you are looking at". It is **the
+preview can be built, published and announced by superseded machinery, silently**. The
+consequence here was cosmetic. The same mechanism applies to the verification step, the base
+path and the FTP target, where it would not be.
+
+That does not change what this intent asks for — a value that says whether two builds are the
+same site. It changes the weight of open question 2 below.
+
 The cost is not hypothetical. This was found by reading the two footers during demo
 preparation and being unable to answer the question they exist to answer — three days before
 a rehearsal in which both URLs are shown on screen and someone will ask exactly this.
@@ -101,6 +133,23 @@ production, and the new value matches while the commit SHAs do not.
    `preview.yml` is making a false claim today either way, and fixing that is a workflow change
    this intent has ruled out. Leaving it unfixed and unmentioned is the option to argue
    against. — Rashid
+
+   **Reweighted after the unfurl incident above.** This started as a labelling question and is
+   now known to have caused a wrong result, silently, in the workflow that publishes previews.
+   That does not automatically pull it into this intent — a problem getting worse is a reason
+   to give it its own intent, not to widen one already scoped to a footer value. The real
+   decision is which of these:
+
+   - **(i)** keep 0004 as scoped, and open a separate intent for stale-base, which will need a
+     `preview.yml` change and therefore a proposal and a human commit;
+   - **(ii)** widen 0004 to state the base alongside the content digest, accepting the
+     workflow change and its timing risk before 09-16;
+   - **(iii)** neither, before the talk — and say so in the runbook, since a preview built by
+     superseded machinery is exactly the kind of thing that goes wrong on stage.
+
+   Drafting agent's recommendation is (i): the weight is real but it is a different problem,
+   and the constraint that kept guardrail files untouched until after the rehearsals has not
+   changed. The decision is Rashid's. — Rashid
 
 ## Notes
 
