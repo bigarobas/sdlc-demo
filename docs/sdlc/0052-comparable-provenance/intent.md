@@ -1,8 +1,12 @@
-# Intent 0004 — you cannot tell what a preview is relative to production
+# Intent 0052 — you cannot tell what a preview is relative to production
 
 - **Status:** draft
 - **Author:** Rashid Ghassempouri
 - **Date:** 2026-09-13
+- **Issue:** [#52](https://github.com/bigarobas/sdlc-demo/issues/52)
+
+> Filed by hand as `0004-comparable-provenance` and renumbered to 0052 when ids moved to the
+> issue number. It was the last intent holding a number nobody had allocated.
 
 ## Problem
 
