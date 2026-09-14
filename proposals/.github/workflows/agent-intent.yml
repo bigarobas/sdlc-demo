@@ -77,13 +77,19 @@ jobs:
             1. Read the issue with `gh issue view ${{ github.event.issue.number }}`.
             2. Follow the `intent` skill at `.claude/skills/intent/SKILL.md` exactly. It
                defines the required sections and the rules. Do not invent a different format.
-            3. Pick the next unused number by listing `docs/sdlc/`, and a short kebab-case
-               slug. Write exactly one file: `docs/sdlc/NNNN-slug/intent.md`. Status is
-               `draft` — accepting an intent is a human act.
+            3. The id is THIS issue's number, ${{ github.event.issue.number }}, zero-padded
+               to four digits — so issue 46 gives `0046-`, issue 7 gives `0007-`, and issue
+               12345 keeps all five. Do NOT list `docs/sdlc/` and increment: that rule chose
+               the number at drafting time, so two people drafting at once picked the same
+               one, and it produced two 0003s here within a day. Add a short kebab-case slug.
+               Write exactly one file: `docs/sdlc/NNNN-slug/intent.md`. Status is `draft` —
+               accepting an intent is a human act.
             4. Link back to issue #${{ github.event.issue.number }} in the intent.
             5. Create a branch `intent/NNNN-slug`, commit that one file, push it, and open a
                pull request whose body explains what you understood the problem to be and
-               what you were unsure about.
+               what you were unsure about. Say in the body that open questions must be
+               answered by editing the file on this branch, not in a comment — a comment on
+               a merged pull request is read by nobody and by no script.
             6. Comment on the issue with a link to the pull request, then stop.
 
             Constraints:

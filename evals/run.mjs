@@ -8,7 +8,7 @@
 // What is NOT here, and is a labelled shell: any judgement of output *quality*.
 
 import { spawnSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 
 let failures = 0;
 let passes = 0;
@@ -123,6 +123,68 @@ check('bootstrap intent.md has its required sections', () => {
 check('bootstrap spec.md links back to its intent', () => {
   const body = readFileSync('docs/sdlc/0000-bootstrap/spec.md', 'utf8');
   return body.includes('intent.md') ? null : 'spec.md does not reference intent.md';
+});
+
+// The id is the issue number, so collisions should be impossible. This asserts it anyway,
+// because the previous rule — increment from the directory listing — produced two 0003s
+// within a day, filed by a human and by agent-intent.yml, and nothing noticed until both
+// were on disk. A rule that cannot be violated does not need a check; a rule that relies on
+// everyone following it does.
+const intentDirs = readdirSync('docs/sdlc', { withFileTypes: true })
+  .filter((d) => d.isDirectory() && /^\d{4,}-/.test(d.name))
+  .map((d) => d.name);
+
+check('intent ids are unique', () => {
+  const seen = new Map();
+  for (const name of intentDirs) {
+    const id = name.slice(0, name.indexOf('-'));
+    if (seen.has(id)) return `id ${id} used twice: ${seen.get(id)} and ${name}`;
+    seen.set(id, name);
+  }
+  return null;
+});
+
+check('every intent directory has an intent.md', () => {
+  const missing = intentDirs.filter((n) => !existsSync(`docs/sdlc/${n}/intent.md`));
+  return missing.length ? `no intent.md in: ${missing.join(', ')}` : null;
+});
+
+// The failure this catches happened on 0003: five open questions were answered in a comment
+// on the pull request, the intent was merged seventeen seconds later, and the artifact on
+// main still said nobody had decided. The answers were correct and in the wrong place, which
+// is the only kind of wrong this repository keeps producing.
+//
+// Scoped to the window where it matters: accepted, and no spec.md yet. That is the moment a
+// spec is about to be built on the framing, and the last cheap place to notice that nobody
+// decided anything.
+//
+// Once spec.md exists the decisions live there as numbered D-rows, which is what AGENTS.md
+// asks for and what 0001 and 0002 actually did — so checking intent.md at that point would
+// demand the same answer be written twice, and fail the repository for following its own
+// convention. Draft intents are exempt too: unanswered questions are the point of a draft.
+check('an intent accepted with no spec yet has answered its open questions', () => {
+  const offenders = [];
+  for (const name of intentDirs) {
+    const p = `docs/sdlc/${name}/intent.md`;
+    if (!existsSync(p)) continue;
+    if (existsSync(`docs/sdlc/${name}/spec.md`)) continue;
+
+    const body = readFileSync(p, 'utf8');
+    if (!/^-\s+\*\*Status:\*\*\s+accepted\s*$/m.test(body)) continue;
+
+    const section = body.split(/^##\s+Open questions\s*$/m)[1];
+    if (!section) continue;
+    const questions = section.split(/^##\s/m)[0];
+
+    // A question is answered when the text under it says so. Anything else is a question
+    // nobody has come back to.
+    const hasQuestion = /\?/.test(questions);
+    const hasAnswer = /\*\*Answer|\*\*Decided|— answered/i.test(questions);
+    if (hasQuestion && !hasAnswer) offenders.push(name);
+  }
+  return offenders.length
+    ? `accepted, no spec, open questions unanswered: ${offenders.join(', ')}`
+    : null;
 });
 
 console.log('\npipeline diagram — every derived node is described');
