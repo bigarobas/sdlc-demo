@@ -1,8 +1,13 @@
-# Intent 0003 — the repository tree on the site is hand-maintained and went stale
+# Intent 0049 — the repository tree on the site is hand-maintained and went stale
 
 - **Status:** draft
 - **Author:** Rashid Ghassempouri
 - **Date:** 2026-09-13
+- **Issue:** [#49](https://github.com/bigarobas/sdlc-demo/issues/49)
+
+> Filed as `0003-generated-repo-tree` and renumbered to 0049 when ids moved to the issue
+> number. It collided with `0003-repo-tree-visualization`, drafted from issue #46 within a
+> day of this one — which is the collision that caused the rule to change.
 
 ## Problem
 
@@ -105,3 +110,20 @@ Things a human must decide before Stage 2:
 Found by a read-through on 2026-09-13, not by any check in the repository. That is itself the
 argument: every other inventory here is verified by machinery, and this one was verified by
 somebody happening to read it.
+
+**Sequenced after 0003.** `0003-repo-tree-visualization` was drafted from issue #46 a day
+after this one and covers the same block of the page from the other side — making the tree
+graphical rather than making it correct. Its fifth open question asked whether the section
+should stay in sync automatically, and the answer recorded there is:
+
+> No for now, lets create a good representation first then in another intent we will create
+> the synch
+
+This is that other intent. 0003 ships the representation; this one removes the possibility of
+it being wrong. Whichever of them is specced second inherits a constraint from the first, and
+they should not be built in parallel by different people.
+
+One consequence worth stating now rather than discovering at spec time: 0003's answer 2 has
+the per-file descriptions written by an agent reading the repository once, with nothing
+keeping them true. That is a deliberate, recorded trade — and it is the drift this intent
+exists to close.
