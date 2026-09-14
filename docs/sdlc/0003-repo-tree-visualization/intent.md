@@ -49,21 +49,50 @@ currently only appears as a glob or a bare path.
 
 ## Open questions
 
-- What counts as "three folder structure with lines" — is this asking for connecting/branch
-  lines between nested items (a classic tree-view look), or something else? The reporter
-  should confirm what they pictured.
-- Where do the per-file short descriptions come from — hand-authored prose (as the current
-  code block already has for some paths), or pulled from each file's own description (e.g. a
-  skill's frontmatter, a hook's leading comment)? If pulled from source, how is drift between
-  the displayed description and the real file prevented?
-- Which specific files must be listed individually versus grouped — the issue names hooks and
-  skills explicitly ("all hooks, all askills, etc."); does this extend to every workflow file,
-  every eval, and every top-level config file currently shown, or only to the ones currently
-  collapsed behind a glob?
-- Is animation, hover, or interactive disclosure (e.g. expand/collapse) in scope, or must the
-  whole tree be visible on load?
-- Does this section need to stay in sync automatically as the repository changes, or is a
-  point-in-time hand-maintained representation (as today) acceptable?
+All five answered by bigarobas on 2026-09-14, in a comment on
+[the drafting pull request](https://github.com/bigarobas/sdlc-demo/pull/47). Transcribed here
+because a comment on a merged pull request is read by nobody and by no script — which is the
+mistake that produced the eval now guarding this section.
+
+1. What counts as "three folder structure with lines" — connecting/branch lines between nested
+   items (a classic tree-view look), or something else?
+
+   **Answer:** branch/connector lines in a tree view.
+
+2. Where do the per-file short descriptions come from — hand-authored prose, or pulled from
+   each file's own description (a skill's frontmatter, a hook's leading comment)? If pulled
+   from source, how is drift prevented?
+
+   **Answer:** from the files, and from the agent's understanding of the workflow.
+
+   _Drift is therefore not prevented, by decision._ An agent reads the repository once and
+   writes prose into the page; nothing keeps it true afterwards. Taken together with answer 5
+   this is a deliberate, recorded trade, and it is the gap
+   [intent 0049](../0049-generated-repo-tree/intent.md) exists to close. The spec must say so
+   plainly on the page, because section 05 claims "nothing here is illustrative" a few lines
+   above this tree, and that claim has already been wrong once.
+
+3. Which files are listed individually versus grouped — only the ones currently behind a glob,
+   or every workflow and top-level config too?
+
+   **Answer:** every workflow file and top-level config currently shown.
+
+4. Is interactivity — expand/collapse, hover — in scope, or must the whole tree render on load?
+
+   **Answer:** in scope, and wanted: a very short description visible, with more detail
+   collapsible.
+
+5. Does the section need to stay in sync automatically, or is a point-in-time hand-maintained
+   representation acceptable?
+
+   **Answer:** no automatic sync for now.
+
+   > "lets create a good representation first then in another intent we will create the synch"
+
+   That other intent is [0049](../0049-generated-repo-tree/intent.md), already filed. The two
+   should not be built in parallel by different people: 0003 ships the representation, 0049
+   removes the possibility of it being wrong, and whichever is specced second inherits
+   constraints from the first.
 
 ## Source
 
