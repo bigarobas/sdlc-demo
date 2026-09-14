@@ -34,6 +34,38 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, ready_for_review, reopened]
+    # Skip pull requests that change nothing but documentation.
+    #
+    # THE ARGUMENT, because this looks like it is only about money and is not: artifacts
+    # already have a compulsory human read. Nobody can merge a spec without accepting it —
+    # that is the gate, and it is the whole point of the loop. Code has no equivalent; nothing
+    # forces a person to read a diff line by line. So an automated review is redundant exactly
+    # where the human read is mandatory, and load-bearing exactly where it is not.
+    #
+    # The money is real too. Three consecutive reviews of artifact-only pull requests posted
+    # nothing at all, one of them after three minutes of wall clock. Paying $1-4 for a model
+    # to read one markdown file that a human is required to read anyway is the worst trade in
+    # this repository.
+    #
+    # `paths-ignore` skips only when EVERY changed file matches. A pull request touching both
+    # `docs/` and `site/` still gets reviewed, which is the behaviour you want — the exclusion
+    # is "this changes no code", not "this touches documentation".
+    #
+    # Deliberately NOT ignored: `.claude/**`, `scripts/**`, `evals/**`. A skill, a hook or an
+    # eval is process-critical, and a careless edit there can disarm a guardrail while every
+    # workflow stays green. Those are the changes most worth a second reader, not least.
+    #
+    # SAFE TO SKIP because `main` has no required status checks — verified against the ruleset
+    # on 2026-09-14, which carries deletion protection, non-fast-forward and pull-request
+    # review, and no `required_status_checks` rule. If that ever changes, a skipped run
+    # reports nothing and blocks the merge forever. Add this workflow to any required-checks
+    # list and this filter becomes a trap.
+    # `docs/**` and nothing else. Not `**/*.md`, which was the first draft of this line and
+    # was wrong twice over: it would have skipped `site/src/content/sections/*.md`, which is
+    # the product rather than documentation about it, and `AGENTS.md`, which is the
+    # instructions every agent reads on every run.
+    paths-ignore:
+      - 'docs/**'
 
 concurrency:
   group: review-${{ github.event.pull_request.number }}
