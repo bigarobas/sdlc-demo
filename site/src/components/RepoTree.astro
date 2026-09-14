@@ -1,0 +1,98 @@
+---
+// The repository tree, rendered from generated data.  [spec 0003 D7-D11]
+//
+// The structure in `repo-tree.json` is derived and drift-checked, so this component cannot
+// show a file that is not there or miss one that is. The descriptions are human — that is
+// stated on the page, not only in the spec.
+//
+// Nesting is computed from the path rather than stored, so there is no tree shape in the data
+// that could disagree with itself. One flat list in, one nested list out.
+
+import data from '../generated/repo-tree.json';
+
+const { nodes, otherChains } = data as {
+  nodes: { path: string; kind: string; short: string; detail?: string }[];
+  otherChains: number;
+};
+
+type Row = {
+  depth: number;
+  name: string;
+  isDir: boolean;
+  path: string;
+  kind?: string;
+  short?: string;
+  detail?: string;
+  last: boolean;
+};
+
+// Walk the sorted paths and emit a row per segment, inserting directory rows the first time
+// each is seen. `last` drives the connector glyph — the vertical run stops at the final child
+// of a directory, which is what makes it read as a tree rather than a ladder.
+const rows: Row[] = [];
+const seen = new Set<string>();
+
+for (const node of nodes) {
+  const parts = node.path.split('/');
+  for (let i = 0; i < parts.length - 1; i++) {
+    const dir = parts.slice(0, i + 1).join('/');
+    if (seen.has(dir)) continue;
+    seen.add(dir);
+    rows.push({ depth: i, name: parts[i] + '/', isDir: true, path: dir, last: false });
+  }
+  rows.push({
+    depth: parts.length - 1,
+    name: parts[parts.length - 1],
+    isDir: false,
+    path: node.path,
+    kind: node.kind,
+    short: node.short,
+    detail: node.detail,
+    last: false,
+  });
+}
+
+// A row is the last of its depth within its parent when no later row shares that parent.
+for (let i = 0; i < rows.length; i++) {
+  const parent = rows[i].path.split('/').slice(0, -1).join('/');
+  rows[i].last = !rows
+    .slice(i + 1)
+    .some((r) => r.path.split('/').slice(0, -1).join('/') === parent && r.depth === rows[i].depth);
+}
+---
+
+<figure class="repo-tree">
+  <ul>
+    {rows.map((row) => (
+      <li
+        class:list={['repo-row', { 'is-dir': row.isDir, 'is-last': row.last }]}
+        style={`--depth:${row.depth}`}
+        data-kind={row.kind}
+      >
+        {row.detail ? (
+          <details>
+            <summary>
+              <code class="repo-name">{row.name}</code>
+              <span class="repo-short">{row.short}</span>
+              {row.kind && <span class="repo-kind">{row.kind}</span>}
+            </summary>
+            <p class="repo-detail">{row.detail}</p>
+          </details>
+        ) : (
+          <div class="repo-line">
+            <code class="repo-name">{row.name}</code>
+            {row.short && <span class="repo-short">{row.short}</span>}
+            {row.kind && <span class="repo-kind">{row.kind}</span>}
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+
+  {/* A count, not a list. The reporter asked for one example chain; saying how many others
+      exist stops the omission reading as "there are only two" — and it is derived, so it
+      cannot drift the way the hand-written version did. */}
+  <p class="repo-note">
+    …and {otherChains} more artifact chains under <code>docs/sdlc/</code>.
+  </p>
+</figure>
