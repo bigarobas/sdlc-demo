@@ -1,6 +1,6 @@
 # Intent 0003 — Graphical repo tree in the implementation section
 
-- **Status:** draft
+- **Status:** accepted
 - **Author:** Claude (drafted from GitHub issue)
 - **Date:** 2026-09-14
 
