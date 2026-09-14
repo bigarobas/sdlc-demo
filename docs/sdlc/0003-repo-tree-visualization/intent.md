@@ -65,10 +65,13 @@ mistake that produced the eval now guarding this section.
 
    **Answer:** from the files, and from the agent's understanding of the workflow.
 
-   _Drift is therefore not prevented, by decision._ An agent reads the repository once and
-   writes prose into the page; nothing keeps it true afterwards. Taken together with answer 5
-   this is a deliberate, recorded trade, and it is the gap
-   [intent 0049](../0049-generated-repo-tree/intent.md) exists to close. The spec must say so
+   _Narrowed on 2026-09-14, with answer 5._ This answer originally meant that everything in
+   the tree — what exists and what each thing is for — was written once and then went stale.
+   Now only the **prose** is: the structure is derived and drift-checked, so a file that is
+   added, removed or renamed changes the tree without anyone touching it.
+
+   What remains true is that a description can be present and wrong. An eval forces one to
+   exist for every derived path; nothing checks that it is accurate. The spec must say so
    plainly on the page, because section 05 claims "nothing here is illustrative" a few lines
    above this tree, and that claim has already been wrong once.
 
@@ -85,14 +88,33 @@ mistake that produced the eval now guarding this section.
 5. Does the section need to stay in sync automatically, or is a point-in-time hand-maintained
    representation acceptable?
 
-   **Answer:** no automatic sync for now.
+   ~~**Answer:** no automatic sync for now.~~
 
-   > "lets create a good representation first then in another intent we will create the synch"
+   > ~~"lets create a good representation first then in another intent we will create the synch"~~
 
-   That other intent is [0049](../0049-generated-repo-tree/intent.md), already filed. The two
-   should not be built in parallel by different people: 0003 ships the representation, 0049
-   removes the possibility of it being wrong, and whichever is specced second inherits
-   constraints from the first.
+   **Superseded on 2026-09-14 by spec D1, before any code was written.** The answer now is:
+   the structure is generated from the first commit, and
+   [0049](../0049-generated-repo-tree/intent.md) is absorbed into this intent rather than
+   sequenced after it.
+
+   The original answer was reasonable and was overtaken by a measurement. `deriveModel()`
+   already returns 22 nodes carrying a file path — 10 workflows, 5 hooks, 5 skills, 2
+   subagents, each with `id`, `kind`, `label` and `file` — and has done since the pipeline
+   diagram shipped. The work this answer deferred was mostly already built.
+
+   The deferral also assumed the split was between a static version and a generated one. It
+   is not: it is between **structure and prose**. Structure cannot go stale once derived;
+   prose is hand-written under either plan. So doing the static version first would not have
+   validated the design more cheaply — whether the tree _looks_ right is independent of where
+   its data comes from — it would have meant hand-writing a file listing, checking the visuals
+   against it, and discarding it.
+
+   What survives from the original answer is the honest part: the descriptions are still
+   written by a human or an agent and still go stale. That is now a sentence on the page
+   rather than the shape of two intents.
+
+   The struck text is kept rather than deleted so the decision that was actually taken on
+   2026-09-14, and the reason it changed, both remain readable.
 
 ## Source
 
