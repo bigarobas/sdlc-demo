@@ -33,10 +33,16 @@ Work moves through version-controlled artifacts in `docs/sdlc/NNNN-slug/`:
 
 `intent.md` → `spec.md` → `plan.md` → diff → PR → deploy → (control band breach) → new `intent.md`
 
+- **`NNNN` is the GitHub issue number**, zero-padded. Every intent has an issue; the issue is
+  where the framing is argued and the number is where the id comes from. Never increment from
+  the directory listing — two people drafting at once pick the same number and neither can
+  tell. That has already happened here. `0000`–`0003` predate the rule and keep their numbers.
 - Never skip an artifact. If one is missing, write it before writing code.
 - `spec.md` links its `intent.md`; `plan.md` links its `spec.md`. The evals check this.
 - Design decisions belong in `spec.md` as numbered rows (D1, D2, …) so later work can cite them.
 - Superseding a decision means editing the spec and saying so — not quietly diverging.
+- **Answer open questions in the artifact, not in a pull request comment.** A comment on a
+  merged pull request is read by nobody and by no script. Edit the file on the branch.
 
 ## Guardrails — do not fight these
 
