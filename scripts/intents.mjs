@@ -78,14 +78,26 @@ const rows = dirs.map((dir) => {
   return { dir, title, status: status ?? '—', have, pr, next };
 });
 
-const pad = (s, n) => String(s).padEnd(n);
+// Always at least one trailing space, so a value exactly as wide as its column cannot run
+// into the next one. `0003-repo-tree-visualization` did: it printed as
+// `0003-repo-tree-visualizationdraft`, which was then pasted back as an intent id and sent
+// this script looking for a directory nobody had ever created. A table that can emit an
+// unparseable cell is a table people will misread.
+const pad = (s, n) => String(s).padEnd(n) + ' ';
+
+// Widths follow the content rather than a guess, so the next long slug widens the column
+// instead of colliding with it.
+const W_ID = Math.max(2, ...rows.map((r) => r.dir.length));
+const W_STATUS = Math.max(6, ...rows.map((r) => r.status.length));
+const W_HAVE = Math.max(9, ...rows.map((r) => r.have.join(' ').length));
+
 console.log('');
-console.log(pad('ID', 26) + pad('STATUS', 12) + pad('ARTIFACTS', 20) + 'NEXT');
-console.log('-'.repeat(96));
+console.log(pad('ID', W_ID) + pad('STATUS', W_STATUS) + pad('ARTIFACTS', W_HAVE) + 'NEXT');
+console.log('-'.repeat(W_ID + W_STATUS + W_HAVE + 48));
 
 if (!rows.length) console.log('  no intents yet');
 for (const r of rows) {
-  console.log(pad(r.dir, 26) + pad(r.status, 12) + pad(r.have.join(' '), 20) + r.next);
+  console.log(pad(r.dir, W_ID) + pad(r.status, W_STATUS) + pad(r.have.join(' '), W_HAVE) + r.next);
   if (r.title && r.title !== r.dir) console.log('  ' + r.title);
 }
 
