@@ -1,10 +1,25 @@
 # Intent 0049 — the repository tree on the site is hand-maintained and went stale
 
-- **Status:** draft
+- **Status:** superseded
 - **Author:** Rashid Ghassempouri
 - **Date:** 2026-09-13
 - **Issue:** [#49](https://github.com/bigarobas/sdlc-demo/issues/49)
+- **Superseded by:** [spec 0003 D1](../0003-repo-tree-visualization/spec.md), 2026-09-14
 
+> **Absorbed, not abandoned.** Everything below is now in scope for
+> [0003](../0003-repo-tree-visualization/intent.md), which generates the tree from its first
+> commit rather than shipping a hand-written one and closing the gap later.
+>
+> The reason is a measurement rather than a change of mind: `deriveModel()` already returns
+> 22 nodes carrying a file path, and has done since the pipeline diagram shipped. This intent
+> was scoped as the work of building a deriver that largely existed. What was left — a
+> directory walk for top-level config and one `docs/sdlc/` chain — is too small to be its own
+> piece of work.
+>
+> The problem statement below still stands, and the test it asks for is now 0003's test:
+> delete a workflow file, run `npm run verify`, and watch it fail without anything under
+> `site/` being touched.
+>
 > Filed as `0003-generated-repo-tree` and renumbered to 0049 when ids moved to the issue
 > number. It collided with `0003-repo-tree-visualization`, drafted from issue #46 within a
 > day of this one — which is the collision that caused the rule to change.
