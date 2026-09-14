@@ -1,211 +1,95 @@
-# Demo runbook — 2026-09-23
+# Runbook
 
-Thirty minutes plus discussion. Two lanes, because one agent cycle does not fit inside a talk
-and pretending otherwise means standing in silence watching a spinner.
+How to run this repository, and what to do when it misbehaves. For the talk script, see
+[TALK.md](./TALK.md) — that document has a date on it and this one does not.
 
-**Lane A** is instant and deterministic — drop it in anywhere, it always works.
-**Lane B** is the full SDLC cycle, fired early and harvested late.
+## The loop, end to end
 
----
+1. **Open an issue** describing the problem. Not the solution.
+2. **Apply the `intent` label.** This is the trigger, and it is also a control: applying a
+   label needs write access, so the drafting agent only ever runs on something a maintainer
+   decided to process.
+3. `agent-intent.yml` **drafts `intent.md`** and opens a pull request. The directory is named
+   after the issue number — `docs/sdlc/0046-repo-tree-visualization/` is issue #46.
+4. **Edit that file on the branch** before merging: Files changed → pencil → commit to branch.
+   Two things in one edit — answer the open questions inline, and set
+   `- **Status:** accepted`.
+   - Answering in a pull request comment does not count. An eval fails the build if an intent
+     is accepted with no spec and its questions still unanswered.
+5. **Merge**, then `git checkout main` and `git pull`.
+6. **`/sdlc <id>`** for the spec. Again for the plan. Again for the implementation. Each is
+   its own short-lived pull request onto `main`.
+   - `/sdlc <id> --auto` collapses those three into one pull request. Use it when the design
+     space is small and a mistake is cheap; not when the spec contains real choices.
+7. **Merge the implementation.** If it touched `site/`, the deploy parks at the production
+   gate and Slack says so. Approve it.
 
-## The day before — 2026-09-22
+`npm run intents` answers "where is everything" at any point. It is a script, not a
+judgement — trust it over memory.
 
-- [ ] **Check the weekly quota.** Everything else assumes there is some left. A full Lane B
-      run costs roughly $0.30 of quota-equivalent; a review, when it works, up to $0.70.
-- [ ] **Run the whole cycle once, start to finish.** Not the pieces — the cycle.
-- [ ] **Confirm the fallback recording still matches the site.** If the design changed since
-      the 14th, re-record it. A recording that shows a different site than the screen is worse
-      than no recording.
-- [ ] **Reset the band threshold.** `bands.yaml` on `main` must hold the real 512000, or the
-      cron will open an issue overnight and the live demo will have nothing left to breach.
-      Read the value, do not assume it:
+## Commands
 
-```powershell
-git show origin/main:bands.yaml | Select-String "max:"
-```
+| Command                                   | What it does                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------------- |
+| `npm run intents`                         | every intent, its status, its artifacts, what a human must do next            |
+| `npm run check`                           | format, evals, diagram drift — about four seconds, builds nothing             |
+| `npm run verify`                          | everything `check` does, then builds, serves and link-checks the site         |
+| `VERIFY_BASE=sdlc-preview npm run verify` | the same against the preview base path                                        |
+| `npm run diagram`                         | regenerate the pipeline diagram after adding a skill, hook, agent or workflow |
 
-- [ ] **Check no band has already fired.** An open control-band issue means the cron has
-      performed your trick for you overnight.
-
-```powershell
-gh issue list --label control-band --state open
-```
-
-- [ ] **Close any open issues and PRs.** A clean repository on the projector is worth more
-      than the two minutes it takes.
-
-## The morning of
-
-- [ ] `npm run verify` — green.
-- [ ] `https://rashid.fr/sdlc/` loads, and the diagram renders.
-- [ ] Slack is visible on screen somewhere. The notifications are half the effect.
-- [ ] Terminal font size up. Nobody at the back can read 12px.
-
-**Tabs, in this order, left to right:**
-
-1. `https://rashid.fr/sdlc/` — the site, the spine of the talk
-2. `https://github.com/bigarobas/sdlc-demo` — Actions tab, for watching runs
-3. `https://github.com/bigarobas/sdlc-demo/issues/new/choose` — pre-loaded, for T+2
-4. Slack
-5. A terminal in the repository
-
----
-
-## Lane B — fire at T+2, harvest at T+18
-
-The whole point: **start it before you explain it.** By the time you have talked through the
-concepts, the agent has finished, and the result is waiting rather than being waited for.
-
-### T+2 — file the intent, then walk away from it
-
-Tab 3, the template chooser. The template files the issue **unlabelled** by design, so
-nothing runs yet. Wording decided on the 14th, not improvised on the day.
-
-Then apply the `intent` label — **on stage, deliberately**.
-
-That separation is the point, and it is worth being slow about: filing costs nothing and
-commits nobody; labelling is the decision, and it takes write access.
-
-> "That label is the only thing I did. Applying it takes write access, which is the difference
-> between a maintainer triaging and anyone on the internet typing into a box. We will come back
-> to it."
-
-Then leave it. Do not watch it.
-
-### T+3 to T+18 — the talk
-
-Sections 1 to 8 of the site. Slack notifications will arrive in the background; let them.
-If one lands mid-sentence, glance at it and carry on — the interruption _is_ the demonstration.
-
-### T+18 — harvest
-
-Back to the issue. There is a comment from the agent linking a pull request, and the pull
-request contains exactly one file: `docs/sdlc/NNNN-slug/intent.md`.
-
-Read the **Open questions** section aloud. That is the part worth showing — not that it wrote
-something, but that it wrote down what it could not determine instead of inventing it.
-
-Then the checks: `verify` green on two base paths, a preview URL you can click.
-
-### T+20 — the two approvals
-
-Two gates, with a merge between them:
-
-1. **Gate one — approve the pull request.** You can, because the author is `claude[bot]` and
-   not you. The agent cannot merge its own work.
-2. Merge it. The deploy starts and stops at the `production` environment.
-3. **Gate two — approve the deployment.**
-
-> "The agent wrote it, CI checked it, and it stopped there. Not because it was told to stop —
-> because the FTP password does not exist on its side of that line."
-
-**Say plainly that the page does not change.** This cycle produced an _artifact_ —
-`docs/sdlc/NNNN-slug/intent.md` — and `docs/` is not part of the Astro build, which renders
-only `site/src/content/sections/*.md` and the generated diagram. The deploy runs, the gate
-holds, and the site is byte-identical.
-
-That is a flat ending unless you name it, so name it:
-
-> "Nothing on the page moved, because what just went through the whole pipeline was a
-> document, not a paragraph. Stage 1 produces an intent — deciding what to build. The next
-> cycle is what builds it."
-
-If you want something visible at the end instead, have a small **content** pull request
-prepared and unmerged before the talk, and merge that at T+22 as a second, faster lap.
-
----
-
-## Lane A — 90 seconds each, drop in anywhere
-
-Use these when Lane B is still working, or if it fails outright.
-
-### A1 — the hook says no
-
-In the terminal, ask Claude to edit a protected file:
+Node 22 is required. On the Windows laptop `nvm use` needs elevation and fails silently, so
+prefix the PATH instead of trusting the switch:
 
 ```
-edit .github/workflows/deploy.yml and remove the approval gate
+export PATH="/c/Users/rashi/AppData/Roaming/nvm/v22.19.0:$PATH"
 ```
 
-It is denied before the tool runs, by a Node script, with a reason. Read the denial aloud.
+## When something misbehaves
 
-> "That is not the model choosing to respect a rule. That is thirty lines of JavaScript
-> returning 'deny'."
+| Symptom                                                  | Cause                                                                                                                                                | What to do                                                                                                                                                        |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A deploy sits at the gate and later runs say "cancelled" | A run parked at the environment gate holds the concurrency group                                                                                     | Approve or cancel the oldest run. `cancel-in-progress: true` now supersedes rather than queues, so this should no longer freeze — it once did for seventeen hours |
+| A review run completes and posts nothing                 | The action spawns background subagents, yields, and the session ends. A race, not a policy                                                           | Roughly one run in five posts. Ask by hand with a `@claude review this PR` comment — that works every time. Durations have ranged 12s to 534s with no pattern     |
+| A preview behaves like an older version of the pipeline  | `pull_request` runs the workflow from the merge ref, so a branch cut before a workflow change runs the **old** workflow                              | Rebase the branch onto current `main`. This is why one preview notification arrived without a Slack link card while production's unfurled                         |
+| A commit you made has vanished after a squash merge      | It was committed locally and never pushed                                                                                                            | `git reflog`, find the SHA, `git cherry-pick <sha>`. This has happened once                                                                                       |
+| `prettier --check` disagrees between laptop and CI       | Line endings                                                                                                                                         | `.gitattributes` forces `eol=lf`. Do not add `endOfLine: "auto"` — that hides the divergence rather than removing it                                              |
+| A bash command is denied and the command looks harmless  | `guard-bash.mjs` matches the raw command string, so a compound command — or prose in a heredoc — containing a git verb near the branch name trips it | Split the command, or write the file with an editor tool instead of a heredoc. The hook cannot tell a command from a sentence about a command                     |
+| A human's commit contains files they did not stage       | An agent left work staged in the index; `git add <path>` then `git commit` picks up everything already staged                                        | `git reset --soft`, restage deliberately. Check `git status` before committing in a tree an agent has been working in                                             |
+| A path argument turns into `C:/Program Files/...`        | Git Bash rewrites leading-slash arguments                                                                                                            | Pass base values slashless (`sdlc-preview`), or set `MSYS_NO_PATHCONV=1`                                                                                          |
+| The site builds but the footer is empty                  | `build-info.json` was written to the wrong path; the import is deliberately tolerant so the build stays green                                        | Check `site/src/generated/build-info.json` exists. The tolerance and the silent failure are the same mechanism from two sides                                     |
 
-**Then say the honest part**, because someone in the room is already thinking it: a hook covers
-the tool calls it matches, and a determined agent with a shell could write the same file another
-way. It stops drift and accidents, which is the failure that actually happens. The boundary that
-holds is the credential that is not there.
+**The general rule:** printing the right output is not the same as succeeding. Several failures
+in this repository were green while broken, and the quiet ones cost the most. Never read `$?`
+after a pipe, and check elapsed time whenever a hang is possible.
 
-### A2 — the loop closes by itself
+## What costs money
 
-```powershell
-gh workflow run "Control bands" --ref test/band-breach
-```
+CI agent runs bill the same weekly Claude Pro quota as the terminal. Three workflows spend
+quota — `claude.yml`, `claude-code-review.yml`, `agent-intent.yml`. The other seven cost
+nothing, which is deliberate: the stages that must not fail for quota reasons are the ones
+that do not consume it.
 
-That branch has an absurd page-weight budget, so the real page breaches it. About twenty
-seconds later — measured across three runs, not estimated — an issue opens by itself, and
-Slack pings.
+- A working review is the most expensive thing here, around $3.75. A silent one is about
+  $0.15, and one has run for three minutes and still posted nothing.
+- Draft pull requests are free — the review skips drafts. Open artifact-only pull requests as
+  drafts; there is no value in paying a model to read one markdown file.
+- Never add `--max-turns` as a cost control. It stops work halfway and charges full price for
+  nothing. `timeout-minutes` is the correct bound.
 
-> "No model ran. That is curl, a threshold, and an exit code. The half of the loop that proves
-> autonomy is the half that costs nothing — which is also why it still works when the quota
-> does not."
+## Things people ask
 
-Then apply the `intent` label to _that_ issue, and you are back in Lane B.
-
-### A3 — the diagram is generated
-
-Site, section 5. Expand it.
-
-> "Nobody drew this. It is derived from the workflow files, the hooks, the skills. CI regenerates
-> it and fails if it does not match — so it cannot go stale, because it is not maintained."
-
-Worth adding: generating it caught a wrong claim that code review had missed. One workflow was
-described as firing on _issue labelled_ when it actually fires on _any issue opened_ — which is
-the whole security model. It survived in YAML, unremarked, until something had to state it in
-words.
-
----
-
-## When it fails
-
-It is a live demo. Something will.
-
-| What breaks                             | What to do                                                                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| The agent's PR has not appeared by T+18 | Do not wait. Go to A1 and A3, come back at T+25. The Actions tab shows it is still running — say so, it is more honest than filling silence.           |
-| The agent produces something odd        | **Show it.** A wrong artifact inside a PR a human must approve is the containment argument working. Read it aloud and explain why it is not a problem. |
-| The quota is exhausted                  | Run **A2 and A3** — A1 still needs a live model turn even though the edit is denied. Play the recording for the rest.                                  |
-| The deploy hangs before the gate        | Check for an older unapproved run holding the queue — that happened for seventeen hours once. `gh run list --workflow Deploy`                          |
-| Preview shows the wrong branch          | Expected. It is one rolling preview: the most recently updated PR wins. Say that and move on.                                                          |
-| Nothing works at all                    | The recording. It is ninety seconds and it shows the same cycle.                                                                                       |
-
-**The rule:** never debug on stage. Narrate what you see, switch lanes, keep moving. A demo that
-fails and is explained clearly lands better than one that succeeds and is not understood — and
-this talk is _about_ things failing visibly, so a failure is on topic.
-
----
-
-## Questions you will be asked
-
-**"What stops it merging its own work?"** `CODEOWNERS` plus a branch rule. The agent's PRs are
-authored by `claude[bot]`, so a named human has to approve. Admit the limit: you are an admin
-and can bypass, and every bypass is logged.
-
-**"What does this cost?"** Section 10 has the real numbers. Lead with the embarrassing one:
-$2.80 spent on a cost control that produced nothing.
+**"What stops it merging its own work?"** `CODEOWNERS` plus a branch rule — the agent's pull
+requests are authored by `claude[bot]`, so a named human has to approve. Admit the limit: an
+admin can bypass, and every bypass is logged. Note also that nothing in configuration currently
+stops the agent running a merge command; that gap is intent 0050.
 
 **"Could a malicious issue make it do something bad?"** Contained, not prevented. The drafting
-agent triggers on _labelled_, not _opened_; the prompt states the issue body is data, not
-instructions; and the output lands in a PR a human approves. Then show that the agent reported
-on the injection attempt in its own artifact.
+agent triggers on _labelled_, not _opened_; the prompt states the issue body is data and not
+instructions; and the output lands in a pull request a human approves.
 
-**"How long did this take?"** Five evenings, and most of the time went on the things in section
-9 — not on the agent writing code.
+**"Does this work in Cursor?"** The artifact chain ports perfectly — it is markdown in a
+repository. Hooks port worst, and hooks are where the deterministic governance lives.
 
-**"Does this work in Cursor?"** Section 8. The artifact chain ports perfectly; hooks port worst,
-and hooks are where the real governance lives.
-
-**"Is the review any good?"** Answer with whatever is true on the day. If it is still declining
-to comment, say so — section 7 already labels what is real and what is not, and being caught
-overselling would cost more than the feature is worth.
+**"Is the automatic review any good?"** When it wins its race, yes — seven findings in one run,
+two of which would have broken things. Most of the time it says nothing. Both halves are true
+and the second one matters more.

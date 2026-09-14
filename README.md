@@ -3,7 +3,7 @@
 A static site explaining the AI-native SDLC, built by the SDLC it describes.
 
 **[rashid.fr/sdlc](https://rashid.fr/sdlc/)** · [the pipeline diagram](docs/PIPELINE.md) ·
-[the talk runbook](docs/RUNBOOK.md)
+[the runbook](docs/RUNBOOK.md) · [the talk script](docs/TALK.md)
 
 Everything the site claims is in this repository: the skills, the hooks, the workflows, the
 artifact chain, and the audit of what broke while building it. If a claim on the page is not
