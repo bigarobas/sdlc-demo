@@ -22,6 +22,10 @@ export function runChecks() {
     ['formatting', ['exec', '--', 'prettier', '--check', '.']],
     ['evals', ['run', 'check:evals']],
     ['diagram', ['run', 'check:diagram']],
+    // Same contract as the diagram: the committed tree must still describe the repository.
+    // This is what makes deleting a workflow turn the build red without anyone touching
+    // site/ — the test intent 0049 asked for, before it was absorbed into 0003.
+    ['repo tree', ['run', 'check:repo-tree']],
   ];
 
   for (const [label, args] of steps) {

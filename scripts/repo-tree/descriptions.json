@@ -1,0 +1,136 @@
+{
+  "_comment": [
+    "What each file in the section-05 tree is for. The hand-written half of a generated tree.",
+    "",
+    "Structure comes from the repository and cannot go stale. This cannot be derived, so an",
+    "eval asserts every derived path has an entry here — adding a workflow fails CI until",
+    "someone says what it is for. That is the same contract annotations.json already has for",
+    "the pipeline diagram, and deliberately a separate file: this keys by path and holds",
+    "short/detail, that keys by node id and holds lane/stage/cost. Different facts about the",
+    "same objects, no field in common, so they cannot contradict each other. [spec 0003 D4-D5]",
+    "",
+    "Written by reading each file. Where a file states its own purpose in a header comment,",
+    "the description paraphrases that rather than inventing a second account of it.",
+    "",
+    "`detail` is optional. An entry without one renders as a plain row, not an empty",
+    "disclosure. Nothing here is checked for accuracy — only for existence. [spec omissions]"
+  ],
+
+  ".claude/agents/simplifier.md": {
+    "short": "reduction pass before a pull request",
+    "detail": "Reviews a finished change for needless complexity and removes it. Quality only — it does not hunt for bugs."
+  },
+  ".claude/agents/verifier.md": {
+    "short": "runs the checks, reports a verdict",
+    "detail": "Has its own context window, so four hundred lines of build output never enter the session doing the implementation."
+  },
+  ".claude/hooks/audit.mjs": {
+    "short": "logs what the agent touched, and when",
+    "detail": "Git records commits and GitHub records approvals; this covers the part nobody otherwise sees. Local only — committing it left the working tree permanently dirty and made git checkout refuse to switch branches."
+  },
+  ".claude/hooks/format.mjs": {
+    "short": "formats the file just written",
+    "detail": "Formatting is not worth a review comment or a turn of the agent's attention. A hook settles it silently and identically every time."
+  },
+  ".claude/hooks/guard-bash.mjs": {
+    "short": "refuses dangerous shell commands",
+    "detail": "Denies force-push, reset --hard, curl piped to a shell, and writes straight to the default branch. It matches the raw command string, which is why it also refuses prose that quotes those commands."
+  },
+  ".claude/hooks/protect-approved.mjs": {
+    "short": "freezes an accepted intent or spec",
+    "detail": "Once Status says accepted, the artifact stops being editable by an agent. Amending one is a proposal a human installs."
+  },
+  ".claude/hooks/protect-guardrails.mjs": {
+    "short": "the agent cannot edit its own guardrails",
+    "detail": "Denies writes to .github/workflows, .claude/settings.json and .claude/hooks. CI workflows define what runs without a human; an agent that can edit them can grant itself new powers."
+  },
+  ".claude/settings.json": {
+    "short": "wires the hooks — the agent cannot edit this",
+    "detail": "Five hooks on two events. It carries no permissions block yet, which is intent 0050: the boundary between what the agent may and may not do is currently a sentence in a skill rather than a list in a file."
+  },
+  ".claude/skills/house-style/SKILL.md": {
+    "short": "design and prose constraints for this site",
+    "detail": "Institutional knowledge applied as a constraint rather than a prompt someone retypes — including the asset-path rule, which exists because that exact bug shipped once."
+  },
+  ".claude/skills/intent/SKILL.md": {
+    "short": "Stage 1 — the intent template and its rules",
+    "detail": "States a problem, never a solution. Also holds the id rule: the number is the GitHub issue number, because incrementing from the directory listing produced two 0003s in a day."
+  },
+  ".claude/skills/sdlc/SKILL.md": {
+    "short": "the orchestrator — does the stage that is next",
+    "detail": "Given an id it reads which artifacts exist and performs the one stage that follows, rather than being told which. --auto runs the remaining stages in one pull request; it may compress agreement, never manufacture it."
+  },
+  ".claude/skills/ship/SKILL.md": {
+    "short": "Stage 3 — turning a plan into a pull request",
+    "detail": "What must pass, what the body has to say, and which commands a human needs next."
+  },
+  ".claude/skills/spec/SKILL.md": {
+    "short": "Stage 2 — the design template",
+    "detail": "Its most valuable output is not the design but the numbered decisions, because those are what later work cites when it needs to diverge."
+  },
+  ".github/workflows/agent-intent.yml": {
+    "short": "issue labelled → drafts an intent",
+    "detail": "Triggers on labelled, never on opened. Applying a label needs write access, which makes the trigger a maintainer triaging rather than a stranger typing into a box."
+  },
+  ".github/workflows/bands.yml": {
+    "short": "cron; a breach opens an issue",
+    "detail": "Stage 6, and the step that hands the loop back to a human. It opens the issue and deliberately does not label it: a breach is evidence, not a decision."
+  },
+  ".github/workflows/checks.yml": {
+    "short": "format, evals, diagram drift — builds nothing",
+    "detail": "The process half of the pipeline, about four seconds. Runs on everything, because a change to docs or .claude can break a hook or an artifact without touching the site."
+  },
+  ".github/workflows/claude-code-review.yml": {
+    "short": "reviews a pull request — the expensive one",
+    "detail": "Roughly one run in five actually posts. It skips drafts, bot-authored pull requests, and anything under docs. No turn limit: --max-turns bounded the work rather than the cost and bought nothing twice."
+  },
+  ".github/workflows/claude.yml": {
+    "short": "@claude mentions — the steering wheel",
+    "detail": "The one place a stranger's words reach an agent. The action checks the triggering user has write access; that check is a default of the action, not a line in this file."
+  },
+  ".github/workflows/deploy.yml": {
+    "short": "gated release to rashid.fr/sdlc/",
+    "detail": "The build job has no credentials. The deploy job has them and cannot start until a named human approves. That asymmetry is the whole governance argument."
+  },
+  ".github/workflows/digest.yml": {
+    "short": "Monday: what is in flight, to Slack",
+    "detail": "Runs npm run intents, which is a script and not a model — same answer every time, no tokens. Weekly rather than daily, because a digest that arrives every morning becomes wallpaper."
+  },
+  ".github/workflows/preview.yml": {
+    "short": "every pull request gets a live URL",
+    "detail": "Uses a different FTP account from deploy: its user is chrooted to the preview directory and cannot reach the live site. Environments are about blast radius; approval is a separate axis."
+  },
+  ".github/workflows/security.yml": {
+    "short": "npm audit — the agentic half is a stub",
+    "detail": "A labelled shell, and the site says so. The agent step is written and commented out; a static site has almost no attack surface, and inventing a finding would be the dishonesty this repository argues against."
+  },
+  ".github/workflows/verify.yml": {
+    "short": "builds the site, crawls every link",
+    "detail": "Stage 4, and the only thing allowed to say it works. Path-filtered to changes that could alter the built output, so editing a spec does not deploy a website."
+  },
+  ".nvmrc": {
+    "short": "pins Node 22.19.0",
+    "detail": "Astro refuses Node 20. On the Windows laptop nvm use needs elevation and fails silently, so the PATH is prefixed instead of trusting the switch."
+  },
+  "bands.yaml": {
+    "short": "what healthy means, in numbers",
+    "detail": "Availability, page weight and build time. The mechanism is real and the metrics are toy — there are no users, so there is no error rate to watch."
+  },
+  "docs/sdlc/0002-navigation-usability/intent.md": {
+    "short": "the problem, and what would be true once fixed"
+  },
+  "docs/sdlc/0002-navigation-usability/plan.md": {
+    "short": "files, order of work, and how completion is proven"
+  },
+  "docs/sdlc/0002-navigation-usability/spec.md": {
+    "short": "numbered design decisions and their reasons"
+  },
+  "evals/run.mjs": {
+    "short": "structural assertions, zero tokens",
+    "detail": "Asserts the guardrails still deny what they claim to deny and that generated artifacts keep their shape. No judgement of quality — that is the token-hungry half, and it is labelled as missing."
+  },
+  "package.json": {
+    "short": "the commands, including the one that matters",
+    "detail": "npm run verify builds, serves at the real base path, crawls every link and runs the evals. A Node script rather than shell glue, because anything with shell in it is a portability bug waiting for a reader on another OS."
+  }
+}

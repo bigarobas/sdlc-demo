@@ -212,5 +212,65 @@ check('every workflow states what triggers it', () => {
   return silent.length ? `no trigger derived for: ${silent.join(', ')}` : null;
 });
 
+console.log('\nrepository tree — generated, described, and kept off the diagram');
+const { deriveTree } = await import('../scripts/repo-tree/model.mjs');
+const tree = deriveTree();
+
+// Spec D3. The tree is a second CONSUMER of deriveModel(), never an extension of it. If
+// someone adds the tree's own entries to the deriver instead, they appear as nodes in the
+// pipeline diagram, where they do not belong.
+//
+// This asserts that invariant, and NOT a node count. The first version of this check
+// hardcoded 27 and went red the moment a workflow was deleted — a legitimate change that
+// should move the diagram. A check that fails on correct work is one people learn to ignore,
+// which is how a real one gets missed.
+check('the tree has not leaked into the pipeline diagram', () => {
+  const diagramFiles = new Set(
+    derived.filter((n) => n.file).map((n) => n.file.replace(/\\/g, '/')),
+  );
+  const treeOnly = tree.nodes
+    .filter((n) => n.kind === 'config' || n.kind === 'artifact' || n.kind === 'eval')
+    .map((n) => n.path);
+  const leaked = treeOnly.filter((p) => diagramFiles.has(p));
+  return leaked.length ? `now derived by the diagram too: ${leaked.join(', ')}` : null;
+});
+
+check('the tree derives every kind it claims to show', () => {
+  const kinds = new Set(tree.nodes.map((n) => n.kind));
+  const required = ['workflow', 'hook', 'skill', 'subagent', 'config', 'artifact'];
+  const absent = required.filter((k) => !kinds.has(k));
+  return absent.length ? `no tree entries for: ${absent.join(', ')}` : null;
+});
+
+// Paths go into a generated JSON file that is committed and compared. A backslash here means
+// the file differs between a Windows laptop and a Linux runner, so the drift check would be
+// permanently red in CI and green locally. That happened once during implementation.
+check('tree paths use forward slashes', () => {
+  const bad = tree.nodes.filter((n) => n.path.includes('\\')).map((n) => n.path);
+  return bad.length ? `backslashes in: ${bad.join(', ')}` : null;
+});
+
+check('the committed tree matches the repository', () => {
+  const p = 'site/src/generated/repo-tree.json';
+  if (!existsSync(p)) return `${p} missing — run \`npm run repo-tree\``;
+  const committed = JSON.parse(readFileSync(p, 'utf8'));
+  const here = new Set(tree.nodes.map((n) => n.path));
+  const there = new Set(committed.nodes.map((n) => n.path));
+  const added = [...here].filter((x) => !there.has(x));
+  const gone = [...there].filter((x) => !here.has(x));
+  if (added.length || gone.length) {
+    return `stale — added: ${added.join(', ') || 'none'}; removed: ${gone.join(', ') || 'none'}`;
+  }
+  return null;
+});
+
+check('every tree entry has a description', () => {
+  const p = 'site/src/generated/repo-tree.json';
+  if (!existsSync(p)) return `${p} missing`;
+  const committed = JSON.parse(readFileSync(p, 'utf8'));
+  const bare = committed.nodes.filter((n) => !n.short).map((n) => n.path);
+  return bare.length ? `no description: ${bare.join(', ')}` : null;
+});
+
 console.log(`\n${passes} passed, ${failures} failed\n`);
 process.exit(failures ? 1 : 0);
