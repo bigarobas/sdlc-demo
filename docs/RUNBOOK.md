@@ -84,7 +84,7 @@ About thirty seconds. A bot comment posts the URL.
 Ask for changes, the agent pushes to the branch, the preview redeploys. No review, no merge,
 no quota. Repeat until it looks right. **This is where the time should go.**
 
-### 9. Mark it ready — the review fires
+### 9. Mark it ready
 
 The **"Ready for review"** button at the bottom of the description, or:
 
@@ -92,7 +92,17 @@ The **"Ready for review"** button at the bottom of the description, or:
 gh pr ready 62
 ```
 
-This is the moment quota starts being spent. Roughly one run in five posts anything.
+Nothing fires. A draft cannot be merged, so this is only the flag that says the work has
+stopped moving. It used to trigger the review, which meant every merge ended with a mandatory
+agent run — see _What costs money_ below.
+
+**If you want a review**, ask for one. This is the only path that has ever worked reliably:
+
+```
+gh workflow run "Claude Code Review" -f pr=62
+```
+
+or comment `@claude review this PR` on the pull request.
 
 ### 10. Merge, then approve the deploy
 
@@ -139,7 +149,7 @@ export PATH="/c/Users/rashi/AppData/Roaming/nvm/v22.19.0:$PATH"
 | Symptom                                                  | Cause                                                                                                                                                | What to do                                                                                                                                                        |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A deploy sits at the gate and later runs say "cancelled" | A run parked at the environment gate holds the concurrency group                                                                                     | Approve or cancel the oldest run. `cancel-in-progress: true` now supersedes rather than queues, so this should no longer freeze — it once did for seventeen hours |
-| A review run completes and posts nothing                 | The action spawns background subagents, yields, and the session ends. A race, not a policy                                                           | Roughly one run in five posts. Ask by hand with a `@claude review this PR` comment — that works every time. Durations have ranged 12s to 534s with no pattern     |
+| A review you dispatched completes and posts nothing      | The action spawns background subagents, yields, and the session ends. A race, not a policy                                                           | 58 runs produced 2 comments, which is why it no longer fires automatically. Retry, or ask with `@claude review this PR`, which has never failed                   |
 | A preview behaves like an older version of the pipeline  | `pull_request` runs the workflow from the merge ref, so a branch cut before a workflow change runs the **old** workflow                              | Rebase the branch onto current `main`. This is why one preview notification arrived without a Slack link card while production's unfurled                         |
 | A commit you made has vanished after a squash merge      | It was committed locally and never pushed                                                                                                            | `git reflog`, find the SHA, `git cherry-pick <sha>`. This has happened once                                                                                       |
 | `prettier --check` disagrees between laptop and CI       | Line endings                                                                                                                                         | `.gitattributes` forces `eol=lf`. Do not add `endOfLine: "auto"` — that hides the divergence rather than removing it                                              |
@@ -154,15 +164,19 @@ after a pipe, and check elapsed time whenever a hang is possible.
 
 ## What costs money
 
-CI agent runs bill the same weekly Claude Pro quota as the terminal. Three workflows spend
-quota — `claude.yml`, `claude-code-review.yml`, `agent-intent.yml`. The other seven cost
-nothing, which is deliberate: the stages that must not fail for quota reasons are the ones
-that do not consume it.
+CI agent runs bill the same weekly Claude Pro quota as the terminal. Three workflows can spend
+quota — `claude.yml`, `claude-code-review.yml`, `agent-intent.yml` — and only the first two
+can be started without a person doing something deliberate.
 
 - A working review is the most expensive thing here, around $3.75. A silent one is about
   $0.15, and one has run for three minutes and still posted nothing.
-- Draft pull requests are free — the review skips drafts. Open artifact-only pull requests as
-  drafts; there is no value in paying a model to read one markdown file.
+- **The review no longer fires on its own.** 58 runs produced 2 comments and none at all on
+  the last fifteen pull requests, so it is `workflow_dispatch` now. Run it when you want it:
+  `gh workflow run "Claude Code Review" -f pr=<n>`.
+- **The iteration loop is free end to end.** Drafts run the checks, the build and the preview
+  and nothing else; marking one ready and merging it now spends nothing either. That was not
+  true while the review fired on `ready_for_review`, because a draft cannot be merged without
+  being marked ready — so every merge ended with a mandatory agent run.
 - Never add `--max-turns` as a cost control. It stops work halfway and charges full price for
   nothing. `timeout-minutes` is the correct bound.
 

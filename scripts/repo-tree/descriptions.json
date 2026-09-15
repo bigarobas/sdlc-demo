@@ -15,7 +15,6 @@
     "`detail` is optional. An entry without one renders as a plain row, not an empty",
     "disclosure. Nothing here is checked for accuracy — only for existence. [spec omissions]"
   ],
-
   ".claude/agents/simplifier.md": {
     "short": "reduction pass before a pull request",
     "detail": "Reviews a finished change for needless complexity and removes it. Quality only — it does not hunt for bugs."
@@ -81,8 +80,8 @@
     "detail": "The process half of the pipeline, about four seconds. Runs on everything, because a change to docs or .claude can break a hook or an artifact without touching the site."
   },
   ".github/workflows/claude-code-review.yml": {
-    "short": "reviews a pull request — the expensive one",
-    "detail": "Roughly one run in five actually posts. It skips drafts, bot-authored pull requests, and anything under docs. No turn limit: --max-turns bounded the work rather than the cost and bought nothing twice."
+    "short": "reviews a pull request, when asked",
+    "detail": "workflow_dispatch only. It used to run on every pull request: 58 runs produced 2 comments, and none at all on the last fifteen. Kept because the one run that won its race found seven real things, so it is now something you ask for rather than something that fires and says nothing."
   },
   ".github/workflows/claude.yml": {
     "short": "@claude mentions — the steering wheel",
