@@ -45,6 +45,12 @@ does not exist sends someone looking for a thing that was never there.
   environment holds the credential. Report the commands instead of attempting them.
 - **`npm run verify` passes before any PR.** Prefer the `verifier` subagent so build output
   stays out of this context.
+- **Open every pull request as a draft** — `gh pr create --draft`. A draft still runs the
+  checks, the build and the preview, all of which are free; it does not run the review, which
+  is the only expensive thing here and costs $1–4 for roughly a one-in-five chance of posting
+  anything. The operator marks it ready when a review is actually wanted, which is also when
+  the work has stopped moving. Never convert a draft to ready yourself: asking for the review
+  is the operator's decision, because it is the one that spends quota.
 - Adding a skill, hook, workflow or agent changes the generated diagram. Run `npm run diagram`
   and annotate the new node, or `verify` fails on drift.
 

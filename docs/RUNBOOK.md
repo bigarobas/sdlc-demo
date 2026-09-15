@@ -5,24 +5,114 @@ How to run this repository, and what to do when it misbehaves. For the talk scri
 
 ## The loop, end to end
 
-1. **Open an issue** describing the problem. Not the solution.
-2. **Apply the `intent` label.** This is the trigger, and it is also a control: applying a
-   label needs write access, so the drafting agent only ever runs on something a maintainer
-   decided to process.
-3. `agent-intent.yml` **drafts `intent.md`** and opens a pull request. The directory is named
-   after the issue number — `docs/sdlc/0046-repo-tree-visualization/` is issue #46.
-4. **Edit that file on the branch** before merging: Files changed → pencil → commit to branch.
-   Two things in one edit — answer the open questions inline, and set
-   `- **Status:** accepted`.
-   - Answering in a pull request comment does not count. An eval fails the build if an intent
-     is accepted with no spec and its questions still unanswered.
-5. **Merge**, then `git checkout main` and `git pull`.
-6. **`/sdlc <id>`** for the spec. Again for the plan. Again for the implementation. Each is
-   its own short-lived pull request onto `main`.
-   - `/sdlc <id> --auto` collapses those three into one pull request. Use it when the design
-     space is small and a mistake is cheap; not when the spec contains real choices.
-7. **Merge the implementation.** If it touched `site/`, the deploy parks at the production
-   gate and Slack says so. Approve it.
+Worked through with a real example: **adding a credits section to the site.** Every step says
+who does it and how, because "edit it on the branch" is not obvious the first time.
+
+### 1. Create the issue — leave it unlabelled
+
+**Issues → New issue.** Title _"Add a credits section to the site"_. Describe the problem —
+who it is for, what is missing — not the solution.
+
+```
+gh issue create --title "Add a credits section to the site" --body "..."
+```
+
+Unlabelled on purpose. Labelling is the trigger, so filing something and deciding to act on it
+stay separate acts. Note the number: issue **#62** becomes intent id **0062**.
+
+### 2. Apply the `intent` label
+
+On the issue, right sidebar → **Labels** → gear → tick `intent`.
+
+```
+gh issue edit 62 --add-label intent
+```
+
+This is also the access control. Applying a label needs write access, so the drafting agent
+only ever runs on something a maintainer decided to process — never on what a stranger typed.
+
+### 3. The agent drafts the intent — automatic
+
+Roughly a minute, about $0.19. It creates branch `intent/0062-credits-section`, writes
+`docs/sdlc/0062-credits-section/intent.md` with `Status: draft`, opens a pull request, and
+comments the link back on the issue.
+
+### 4. Answer the open questions and accept — on the branch
+
+**The step people get wrong.** On the pull request → **Files changed** → the **⋯** menu at the
+right of the file header → **Edit file**. Answer each open question inline, and change:
+
+```
+- **Status:** draft   →   - **Status:** accepted
+```
+
+Then choose **"Commit directly to the branch"**, not "create a new branch".
+
+Answering in a pull request comment does not count. A comment on a merged pull request is read
+by nobody and by no script — an eval fails the build if an intent is accepted with its
+questions unanswered.
+
+### 5. Merge the intent pull request
+
+```
+gh pr merge 62 --squash --delete-branch --admin
+git pull
+```
+
+`--admin` because `CODEOWNERS` requires an approval the author cannot give themselves.
+
+### 6. Run the cycle
+
+```
+/sdlc 0062-credits-section --auto
+```
+
+`--auto` does spec, plan and implementation in one pass. Right for a credits section: small
+design space, cheap mistake. Drop it whenever the spec contains real choices — run `/sdlc`
+three times instead and read each artifact.
+
+The agent opens the pull request **as a draft**. That is the rule, not a preference: a draft
+runs the checks, the build and the preview — all free — and skips the review, which is the
+only expensive thing in the pipeline.
+
+### 7. The preview appears — automatic
+
+About thirty seconds. A bot comment posts the URL.
+
+### 8. Iterate — this is the cheap loop
+
+Ask for changes, the agent pushes to the branch, the preview redeploys. No review, no merge,
+no quota. Repeat until it looks right. **This is where the time should go.**
+
+### 9. Mark it ready — the review fires
+
+The **"Ready for review"** button at the bottom of the description, or:
+
+```
+gh pr ready 62
+```
+
+This is the moment quota starts being spent. Roughly one run in five posts anything.
+
+### 10. Merge, then approve the deploy
+
+```
+gh pr merge 62 --squash --delete-branch --admin
+```
+
+If it touched `site/`, the deploy parks at the production gate and Slack says so. To approve:
+**Actions** → the running **Deploy** workflow → **Review deployments** → tick `production` →
+**Approve and deploy**.
+
+---
+
+**Draft pull requests, since the mechanics are not obvious:**
+
+| Want                    | How                                                                  |
+| ----------------------- | -------------------------------------------------------------------- |
+| Create one              | `gh pr create --draft`, or the green button's **▾** → _Create draft_ |
+| Convert an existing one | PR page → right sidebar under _Reviewers_ → **Convert to draft**     |
+| Mark it ready           | **Ready for review** button, or `gh pr ready <n>`                    |
 
 `npm run intents` answers "where is everything" at any point. It is a script, not a
 judgement — trust it over memory.
