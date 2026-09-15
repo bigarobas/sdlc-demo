@@ -18,7 +18,8 @@
     "check:diagram": "node scripts/diagram.mjs --check",
     "repo-tree": "node scripts/repo-tree.mjs",
     "check:repo-tree": "node scripts/repo-tree.mjs --check",
-    "intents": "node scripts/intents.mjs"
+    "intents": "node scripts/intents.mjs",
+    "proposals": "node scripts/proposals.mjs"
   },
   "devDependencies": {
     "linkinator": "^6.1.2",
