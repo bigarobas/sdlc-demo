@@ -44,7 +44,7 @@ flowchart LR
     direction TB
     dec_merge{"approve + merge the PR"}
     dec_deploy{"approve the deployment"}
-    wf_claude_code_review[["Claude Code Review<br/><small>▸ pull request</small>"]]
+    wf_claude_code_review[["Claude Code Review<br/><small>▸ manual</small>"]]
     wf_deploy[["Deploy<br/><small>▸ push to main · manual</small>"]]
     wf_preview[["Preview<br/><small>▸ pull request</small>"]]
     env_production{{"production<br/><small>▸ deploy.yml — waits for a human</small>"}}
