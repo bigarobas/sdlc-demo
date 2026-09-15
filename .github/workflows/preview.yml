@@ -30,7 +30,10 @@ name: Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # `closed` is new, and it is the cleanup. Without it every merged or abandoned pull
+    # request leaves its directory on the host forever, and the FTP action will not remove
+    # what it did not create.
+    types: [opened, synchronize, reopened, ready_for_review, closed]
     # The app boundary. A change outside these paths cannot alter the built site, so
     # building or deploying it would prove nothing. Repeated in verify.yml, preview.yml and
     # deploy.yml: GitHub cannot share a path list between workflows, so the duplication is
@@ -42,8 +45,18 @@ on:
       - 'package-lock.json'
       - '.github/workflows/preview.yml'
 
+# ONE PREVIEW PER PIECE OF WORK, not one for the whole repository.
+#
+# This used to be `group: preview` with `cancel-in-progress: true`, which meant two open pull
+# requests fought over a single URL and cancelled each other's runs. Whoever pushed last owned
+# https://rashid.fr/sdlc-preview/, and the pull request comment said so — "the most recently
+# updated pull request wins" — which is a sentence describing a bug as a feature.
+#
+# That is tolerable with one person and one change in flight. It is the first thing to break
+# when several intents run at once. Keyed on the pull request number rather than the slug,
+# because the group is evaluated before any step runs and the slug is computed in one.
 concurrency:
-  group: preview
+  group: preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -52,9 +65,15 @@ jobs:
     # requests, so a fork could not publish anything — but without this guard it would try,
     # fail obscurely on empty credentials, and leave a red check that looks like a bug in
     # the pipeline rather than a control working. Fail by not starting.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    #
+    # And not when the pull request is closing — that event runs the cleanup job instead.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      slug: ${{ steps.slug.outputs.slug }}
 
     # The repository default is read-only, and posting the preview comment is a write. This
     # is the same trap the review workflow appears to be sitting in: a job that reads a pull
@@ -74,6 +93,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # THE SLUG. One preview directory per piece of work, derived from the branch name.
+      #
+      # `intent/0062-credits-section` gives `0062`, so the URL matches the artifact directory
+      # and a reader can get from one to the other without asking anybody. A branch with no
+      # intent id — a chore, a hotfix — falls back to `pr-<number>`, which is always present
+      # and always unique.
+      #
+      # Deliberately NOT the branch name itself: those contain slashes, and a slug that can
+      # contain a slash is a path traversal waiting to be interesting on a live FTP account.
+      # The grep below reduces to digits, or a pr- prefix, and nothing else survives it.
+      - name: Work out the preview slug
+        id: slug
+        run: |
+          branch="${{ github.event.pull_request.head.ref }}"
+          id=$(printf '%s' "$branch" | grep -oE '[0-9]{4,}' | head -1 || true)
+          if [ -n "$id" ]; then slug="$id"; else slug="pr-${{ github.event.pull_request.number }}"; fi
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "Preview slug: $slug"
+
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -86,9 +124,16 @@ jobs:
 
       # Verify at the preview base before publishing it. This is the run that catches a
       # base-path bug, because the preview path is not the production one.
+      #
+      # VERIFY_BASE now carries the slug, so the link crawl runs against the path this build
+      # will actually live at. `normaliseBase()` in scripts/verify.mjs strips leading and
+      # trailing slashes and re-wraps, so a nested value works — but it has only ever been
+      # given a single segment before, and a base-path bug that only appears two levels deep
+      # is exactly the class of thing this step exists to catch. Worth watching on the first
+      # run rather than assuming.
       - name: Verify
         env:
-          VERIFY_BASE: sdlc-preview
+          VERIFY_BASE: sdlc-preview/${{ steps.slug.outputs.slug }}
         run: npm run verify
 
       # BUILD_ENV marks this build as a preview, which is what puts the marker in the nav so
@@ -106,7 +151,7 @@ jobs:
         run: >-
           npm --prefix site run build --
           --site https://rashid.fr
-          --base /sdlc-preview/
+          --base /sdlc-preview/${{ steps.slug.outputs.slug }}/
 
       - name: Publish over FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -115,10 +160,15 @@ jobs:
           username: ${{ secrets.FTP_PREVIEW_USERNAME }}
           password: ${{ secrets.FTP_PREVIEW_PASSWORD }}
           local-dir: ./site/dist/
-          # './' and not '/www/sdlc-preview/': this FTP user is chrooted, so its login root
-          # already IS the preview directory. Giving the absolute path would try to create
-          # /www/sdlc-preview/www/sdlc-preview/.
-          server-dir: ./
+          # './<slug>/' and not '/www/sdlc-preview/<slug>/': this FTP user is chrooted, so its
+          # login root already IS the preview directory. Giving the absolute path would try to
+          # create /www/sdlc-preview/www/sdlc-preview/.
+          #
+          # Still the same chrooted account. Per-intent directories change the blast radius
+          # not at all — this credential could never reach the live site, and still cannot.
+          server-dir: ./${{ steps.slug.outputs.slug }}/
+          # One state file per slug. Sharing one across previews would make each deploy think
+          # the others' files were its own and delete them.
           state-name: .ftp-deploy-sync-state.json
 
       # Say where it went, on the pull request itself. GitHub does surface the environment
@@ -131,14 +181,18 @@ jobs:
           script: |
             const marker = '<!-- preview-url -->';
             const sha = context.sha.slice(0, 7);
+            const slug = '${{ steps.slug.outputs.slug }}';
+            const base = context.payload.pull_request.base.sha.slice(0, 7);
             const body = [
               marker,
-              '**Preview:** https://rashid.fr/sdlc-preview/',
+              '**Preview:** https://rashid.fr/sdlc-preview/' + slug + '/',
               '',
-              'Built from ' + sha + ' — this pull request *merged into main*, which is what it',
-              'will look like after merging, not the branch on its own.',
+              'Built from ' + sha + ' — this pull request merged into `' + base + '`, which was',
+              '`main` when this ran. If `main` has moved since, this is not what merging will',
+              'produce; push again to rebuild against the current base.',
               '',
-              'One rolling preview: the most recently updated pull request wins.',
+              'This URL belongs to this pull request and nothing else overwrites it. It is',
+              'deleted when the pull request closes.',
             ].join('\n');
 
             const { owner, repo } = context.repo;
@@ -164,8 +218,58 @@ jobs:
           payload=$(jq -n \
             --arg n "${{ github.event.pull_request.number }}" \
             --arg t "${{ github.event.pull_request.title }}" \
-            '{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/"),
+            --arg s "${{ steps.slug.outputs.slug }}" \
+            '{text: ("Preview ready for #" + $n + " — " + $t + "\nhttps://rashid.fr/sdlc-preview/" + $s + "/"),
               unfurl_links: true, unfurl_media: true}')
           code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
             -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL" || echo 000)
           [ "$code" = "200" ] || echo "::warning::Slack notification failed (HTTP $code)"
+
+  # ---------------------------------------------------------------------------------------
+  # CLEANUP. The half people forget, and the reason per-pull-request previews turn into a
+  # full disk six months later.
+  #
+  # SamKirkland/FTP-Deploy-Action only ever adds and updates; it will not delete a directory
+  # it did not create. So emptying the folder is done by deploying an empty directory into it
+  # with `dangerous-clean-slate`, which removes everything in `server-dir` first. The now-empty
+  # directory itself remains, costing an inode and nothing else.
+  #
+  # `dangerous-clean-slate` earns its name — it is destructive by design, and pointed at a
+  # path built from `slug`. That is why `slug` is reduced to digits or `pr-<number>` in the
+  # job above and can contain nothing else: a slug that could hold `..` or `/` would make this
+  # step delete something that was never a preview.
+  # ---------------------------------------------------------------------------------------
+  cleanup:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+
+    environment:
+      name: preview
+
+    steps:
+      - name: Work out the preview slug
+        id: slug
+        run: |
+          branch="${{ github.event.pull_request.head.ref }}"
+          id=$(printf '%s' "$branch" | grep -oE '[0-9]{4,}' | head -1 || true)
+          if [ -n "$id" ]; then slug="$id"; else slug="pr-${{ github.event.pull_request.number }}"; fi
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+          echo "Removing preview: $slug"
+
+      - name: Empty the directory
+        run: mkdir -p empty
+
+      - name: Wipe the preview over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_PREVIEW_SERVER }}
+          username: ${{ secrets.FTP_PREVIEW_USERNAME }}
+          password: ${{ secrets.FTP_PREVIEW_PASSWORD }}
+          local-dir: ./empty/
+          server-dir: ./${{ steps.slug.outputs.slug }}/
+          dangerous-clean-slate: true
