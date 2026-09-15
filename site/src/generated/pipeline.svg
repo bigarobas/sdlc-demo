@@ -121,7 +121,7 @@
 <rect x="848" y="414" width="176" height="60" rx="5"/>
 <path d="M858 423 h11 v11 h-11 z M862 426 l4.5 2.5 l-4.5 2.5 z" class="glyph "/>
 <text x="876" y="431" class="box-label">Claude Code Review</text>
-<text x="858" y="446" class="box-trigger">▸ pull request</text>
+<text x="858" y="446" class="box-trigger">▸ manual</text>
 <text x="858" y="460" class="box-note">reviews the diff, comments</text>
 <text x="1010" y="432" class="cost">$</text>
 </g>
