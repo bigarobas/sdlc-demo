@@ -99,8 +99,8 @@
     {
       "path": ".github/workflows/claude-code-review.yml",
       "kind": "workflow",
-      "short": "reviews a pull request — the expensive one",
-      "detail": "Roughly one run in five actually posts. It skips drafts, bot-authored pull requests, and anything under docs. No turn limit: --max-turns bounded the work rather than the cost and bought nothing twice."
+      "short": "reviews a pull request, when asked",
+      "detail": "workflow_dispatch only. It used to run on every pull request: 58 runs produced 2 comments, and none at all on the last fifteen. Kept because the one run that won its race found seven real things, so it is now something you ask for rather than something that fires and says nothing."
     },
     {
       "path": ".github/workflows/claude.yml",

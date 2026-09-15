@@ -30,19 +30,22 @@ the part that closes the loop, which costs nothing because nothing in it is a mo
 
 ## What that bought, in decisions
 
-- **Three agent workflows, no more.** Each has a `timeout-minutes` and a `concurrency` group.
-  The review has no turn limit any more, for the reason above; `claude.yml` still carries
-  `--max-turns 20` and probably should not, which is the sort of thing that survives because
-  nothing red ever happens to it. The review does not trigger on `synchronize`, because that
-  would start a fresh run on every push to a branch.
+- **Three agent workflows, and only one of them fires by itself.** Each has a
+  `timeout-minutes` and a `concurrency` group. The review has no turn limit any more, for the
+  reason above; `claude.yml` still carries `--max-turns 20` and probably should not, which is
+  the sort of thing that survives because nothing red ever happens to it. The review is now
+  `workflow_dispatch` only — see the honesty section for the fifty-eight runs that decided
+  that.
 - **Stages 4 and 6 spend nothing.** Build, link check, evals, formatting, the diagram drift
   check and control-band monitoring are all deterministic. The stages that must not fail
   during a demo are the stages that cannot fail for quota reasons.
 - **The eval suite is structural, not judged.** Zero tokens, run on every push. See the
   honesty section for what that leaves out.
 - **`AGENTS.md` is kept short deliberately** — it is re-read on every single run.
-- **Draft pull requests are free.** The review skips drafts, so iterating costs nothing until
-  the work is marked ready.
+- **The whole iteration loop is free.** Pull requests open as drafts, which run the checks,
+  the build and the preview and nothing else. With the review on demand, marking one ready and
+  merging it spends nothing either — which was not true a day ago, because a draft cannot be
+  merged without being marked ready, and that used to fire a review every time.
 
 ## The failure mode that matters
 
