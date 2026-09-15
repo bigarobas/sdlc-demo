@@ -86,10 +86,14 @@ jobs:
                accepting an intent is a human act.
             4. Link back to issue #${{ github.event.issue.number }} in the intent.
             5. Create a branch `intent/NNNN-slug`, commit that one file, push it, and open a
-               pull request whose body explains what you understood the problem to be and
-               what you were unsure about. Say in the body that open questions must be
-               answered by editing the file on this branch, not in a comment — a comment on
-               a merged pull request is read by nobody and by no script.
+               pull request with `gh pr create --draft` — a DRAFT, always. A draft runs the
+               checks and the preview, which are free, and skips the review, which is the only
+               job here that spends quota. Marking it ready is the operator's act, because it
+               is the act that spends money.
+               The body explains what you understood the problem to be and what you were
+               unsure about. Say in it that open questions must be answered by editing the
+               file on this branch, not in a comment — a comment on a merged pull request is
+               read by nobody and by no script.
             6. Comment on the issue with a link to the pull request, then stop.
 
             Constraints:

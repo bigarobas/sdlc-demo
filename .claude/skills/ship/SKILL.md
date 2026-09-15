@@ -17,6 +17,31 @@ hard to make wrongly.
    backwards. If you skipped one, write it now.
 4. You are on a branch. Pushing to `main` is blocked by a hook, and rightly.
 
+## Open it as a draft
+
+```
+gh pr create --draft --title "…" --body-file -
+```
+
+**Always.** A draft pull request runs `checks`, `verify` and `preview` — every deterministic
+gate, all free. What it does not run is `claude-code-review`, which is the single most
+expensive thing in this repository: $1–4 when it works, and it posts nothing roughly four
+times in five.
+
+So a draft is not a weaker pull request. It is the same pull request without the one step that
+spends quota, which means the iteration loop — push, preview, look, push again — costs
+nothing at all.
+
+Marking it ready is the operator's act and nobody else's, because it is the act that spends
+money. Report the command and stop:
+
+```
+gh pr ready <n>
+```
+
+This rule lived only in a comment inside `claude-code-review.yml` for three weeks. Nothing
+read it there, so pull requests were opened both ways depending on who remembered.
+
 ## The pull request body
 
 ```markdown
