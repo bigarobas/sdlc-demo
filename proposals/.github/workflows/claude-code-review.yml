@@ -6,9 +6,10 @@ name: Claude Code Review
 # work, so an uncapped agent job is a quota leak that surfaces as a failed demo rather than
 # as a bill.
 #
-# `synchronize` is deliberately NOT a trigger. With it, every push to a PR branch starts a
-# fresh review: a five-commit branch costs five runs. The review fires once when the pull
-# request is ready, and a human can ask for another by commenting `@claude review this again`.
+# HISTORY, kept because it is the reasoning that led here. `synchronize` was deliberately not
+# a trigger: with it, every push to a branch starts a fresh review and a five-commit branch
+# costs five runs. Then `opened` and `ready_for_review` went too, for the reason below. The
+# direction of travel was always towards fewer automatic runs; this is the end of it.
 #
 # MEASURED, and wrong twice before this. Both failures were `error_max_turns`:
 #
@@ -27,70 +28,65 @@ name: Claude Code Review
 # which burns a turn on being refused. Everything permitted here is read-only — reviewing is
 # not editing.
 #
-# COST: expect roughly $1-2 of quota-equivalent per successful review. This is the single most
-# expensive thing in the repository. Open pull requests as DRAFTS while iterating — the review
-# skips drafts — and mark them ready when a review is actually wanted.
+# COST: expect roughly $1-2 of quota-equivalent per successful review, and $3.75 for the one
+# that produced real findings. This is the single most expensive thing in the repository, which
+# is why it now runs only when someone asks for it.
+#
+# Draft-by-default still matters, but for the other jobs rather than this one: a draft runs the
+# checks, the build and the preview — all free — and this workflow no longer fires on any pull
+# request event at all, drafted or not.
+
+# TURNED OFF AS AN AUTOMATIC TRIGGER ON 2026-09-15, after measuring it.
+#
+#   58 runs, 52 of them "successful"
+#    2 inline comments, ever — on pull requests #22 and #26
+#    0 across the last fifteen pull requests, #41 to #61
+#
+# Nothing posted on anything merged in a week of daily use. The race described below is not
+# an occasional miss; it is the normal outcome. A review that does not arrive is not advice,
+# and it is not free — it is the most expensive job in this repository.
+#
+# It is not deleted, because when it wins the race it is genuinely good: 35 turns, seven
+# findings, two of which were about to break the live demo, and neither caught by a human
+# reading the same text. So it becomes something you ASK for rather than something that fires
+# and says nothing.
+#
+# There is a second reason beyond cost. Draft-by-default plus a review on `ready_for_review`
+# means every merge ends with a mandatory agent run, because a draft cannot be merged without
+# being marked ready. That made the cheap iteration loop expensive at exactly the last step.
+#
+# TO RUN ONE:
+#
+#   gh workflow run "Claude Code Review" -f pr=62
+#
+# or comment `@claude review this PR` on the pull request, which goes through claude.yml and
+# has never failed.
 
 on:
-  pull_request:
-    types: [opened, ready_for_review, reopened]
-    # Skip pull requests that change nothing but documentation.
-    #
-    # THE ARGUMENT, because this looks like it is only about money and is not: artifacts
-    # already have a compulsory human read. Nobody can merge a spec without accepting it —
-    # that is the gate, and it is the whole point of the loop. Code has no equivalent; nothing
-    # forces a person to read a diff line by line. So an automated review is redundant exactly
-    # where the human read is mandatory, and load-bearing exactly where it is not.
-    #
-    # The money is real too. Three consecutive reviews of artifact-only pull requests posted
-    # nothing at all, one of them after three minutes of wall clock. Paying $1-4 for a model
-    # to read one markdown file that a human is required to read anyway is the worst trade in
-    # this repository.
-    #
-    # `paths-ignore` skips only when EVERY changed file matches. A pull request touching both
-    # `docs/` and `site/` still gets reviewed, which is the behaviour you want — the exclusion
-    # is "this changes no code", not "this touches documentation".
-    #
-    # Deliberately NOT ignored: `.claude/**`, `scripts/**`, `evals/**`. A skill, a hook or an
-    # eval is process-critical, and a careless edit there can disarm a guardrail while every
-    # workflow stays green. Those are the changes most worth a second reader, not least.
-    #
-    # SAFE TO SKIP because `main` has no required status checks — verified against the ruleset
-    # on 2026-09-14, which carries deletion protection, non-fast-forward and pull-request
-    # review, and no `required_status_checks` rule. If that ever changes, a skipped run
-    # reports nothing and blocks the merge forever. Add this workflow to any required-checks
-    # list and this filter becomes a trap.
-    # `docs/**` and nothing else. Not `**/*.md`, which was the first draft of this line and
-    # was wrong twice over: it would have skipped `site/src/content/sections/*.md`, which is
-    # the product rather than documentation about it, and `AGENTS.md`, which is the
-    # instructions every agent reads on every run.
-    paths-ignore:
-      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'Pull request number to review'
+        required: true
+        type: string
 
 concurrency:
-  group: review-${{ github.event.pull_request.number }}
+  group: review-${{ inputs.pr }}
   cancel-in-progress: true
 
 jobs:
   claude-review:
-    # Two conditions, both about not starting a run that cannot finish.
+    # The two guards this job used to carry are gone with the automatic trigger, and both
+    # were made redundant by it rather than dropped:
     #
-    # Same-repository pull requests only. On a public repository anyone can open a fork pull
-    # request; GitHub withholds the OAuth token from those, so the run would fail rather than
-    # spend quota — but not starting is cheaper and clearer. Review outside contributions by
-    # hand, or push the branch to this repository first.
+    #   - Fork pull requests. `workflow_dispatch` can only be started by someone with write
+    #     access on this repository, so a stranger's fork can no longer start a run at all.
+    #     That is a stronger guarantee than the `if:` was, not a weaker one.
+    #   - Bot-authored pull requests. `agent-intent.yml` used to trigger this and leave a red
+    #     X on every drafted intent. A workflow nobody triggers cannot be triggered by a bot.
     #
-    # And not on pull requests opened by a bot. `agent-intent.yml` drafts an intent and opens
-    # a pull request as claude[bot]; that triggered this workflow, which then refused with
-    # "Workflow initiated by non-human actor" and left a red X on every drafted intent.
-    #
-    # The action offers `allowed_bots` to permit it. Declining that on purpose: it would let
-    # an agent's pull request start another agent run, which is the recursion the check exists
-    # to prevent, in exchange for reviewing one markdown file against a template it was just
-    # generated from. Skipping is the honest version of the same outcome, and costs nothing.
-    if: >-
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.user.type != 'Bot'
+    # Reviewing a fork's contribution now means pushing the branch to this repository first
+    # and dispatching against that, which is the same thing the old guard told you to do.
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -115,7 +111,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: '/code-review:code-review --comment ${{ github.repository }}/pull/${{ inputs.pr }}'
           # show_full_output is off again. It was enabled for two runs to find out why six
           # reviews had completed and posted nothing, and it answered the question — one of
           # those two runs reviewed properly and one did not, which ruled the flag out as the
