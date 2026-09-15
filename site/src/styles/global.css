@@ -529,3 +529,160 @@ footer {
 .build-time {
   margin-left: auto;
 }
+
+/* ---------------------------------------------------------------------------------------
+   The repository tree, section 05.  [spec 0003 D8-D10]
+
+   Structure comes from generated data; this only draws it. Connector lines are pseudo-
+   elements rather than box-drawing characters, because characters in a monospace column are
+   the code block this replaced, with extra steps.
+
+   Everything is scoped under .repo-tree so nothing here can reach the rest of the page.
+--------------------------------------------------------------------------------------- */
+
+.repo-tree {
+  margin: 1.5rem 0;
+  padding: 0.75rem 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  overflow-x: auto;
+}
+
+.repo-tree ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repo-row {
+  /* --depth is set per row from the path. One custom property does the indentation and the
+     connector offset, so they cannot drift apart. */
+  position: relative;
+  padding-left: calc(var(--depth) * 1.25rem + 1.75rem);
+  min-height: 1.6rem;
+}
+
+/* The horizontal stub into each row. */
+.repo-row::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--depth) * 1.25rem + 0.7rem);
+  top: 0.8rem;
+  width: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+/* The vertical run, stopping halfway down the last child so the branch reads as closed. */
+.repo-row::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--depth) * 1.25rem + 0.7rem);
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid var(--border);
+}
+
+.repo-row.is-last::after {
+  bottom: auto;
+  height: 0.8rem;
+}
+
+/* Depth 0 has no parent to hang from. */
+.repo-row[style*='--depth:0']::before,
+.repo-row[style*='--depth:0']::after {
+  display: none;
+}
+
+.repo-row[style*='--depth:0'] {
+  padding-left: 0.75rem;
+}
+
+.repo-line,
+.repo-row summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.15rem 0.5rem 0.15rem 0;
+}
+
+/* The whole row is the summary, so the focus target and the click target are one element. */
+.repo-row summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.repo-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.repo-row summary:hover .repo-name,
+.repo-row summary:focus-visible .repo-name {
+  color: var(--accent);
+}
+
+.repo-name {
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--text);
+}
+
+.repo-row.is-dir .repo-name {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.repo-short {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* Colour and a word, not an icon set — one accent, no new dependency. [D9] */
+.repo-kind {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  padding: 0 0.35rem;
+  border-radius: 3px;
+  color: var(--muted);
+  background: var(--code-bg);
+}
+
+.repo-row[data-kind='workflow'] .repo-kind,
+.repo-row[data-kind='hook'] .repo-kind {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.repo-detail {
+  margin: 0.25rem 0 0.5rem 0;
+  max-width: var(--measure);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.repo-note {
+  margin: 0.5rem 0 0 0.75rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* Below 40rem the kind label is redundant with the colour and costs a line wrap per row. */
+@media (max-width: 40rem) {
+  .repo-row {
+    padding-left: calc(var(--depth) * 0.75rem + 1.25rem);
+  }
+
+  .repo-row::before {
+    left: calc(var(--depth) * 0.75rem + 0.45rem);
+  }
+
+  .repo-row::after {
+    left: calc(var(--depth) * 0.75rem + 0.45rem);
+  }
+
+  .repo-kind {
+    display: none;
+  }
+}

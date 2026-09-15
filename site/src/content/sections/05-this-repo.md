@@ -7,32 +7,17 @@ stage: implementation
 Nothing here is illustrative. These files exist, and the page you are reading was deployed by
 the workflow described below.
 
-```
-.claude/
-  skills/{intent,spec,ship,house-style,sdlc}/SKILL.md  knowledge applied as constraints
-  agents/{verifier,simplifier}.md                      scoped helpers, own context
-  hooks/*.mjs                                          five deterministic gates
-  settings.json                                        wires them (agent cannot edit this)
-docs/sdlc/
-  0000-bootstrap/{intent,spec,plan}.md                 this project's own artifact chain
-  0001-build-provenance/{intent,spec,plan}.md          shipped: the footer says what it is
-  0002-navigation-usability/{intent,spec,plan}.md      shipped: section nav and scrollspy
-  REVIEW.md                                            review policy and severities
-  audit-log.md                                         hook-written, local only — see below
-evals/run.mjs                                          structural assertions, zero tokens
-bands.yaml                                             what "healthy" means, in numbers
-.github/workflows/
-  checks.yml               format, evals, diagram drift — everything   free
-  verify.yml               build and link check, app changes only      free
-  preview.yml              every PR gets a live URL                    free
-  deploy.yml               gated FTP release to rashid.fr/sdlc/        free
-  bands.yml                cron; a breach opens an issue               free
-  security.yml             npm audit; the agentic half is a stub       free
-  digest.yml               Monday: what is in flight, to Slack         free
-  claude.yml               @claude mentions                            agent
-  claude-code-review.yml   reviews pull requests                       agent
-  agent-intent.yml         issue labelled -> drafts an intent          agent
-```
+**This listing is generated.** The structure below comes from the repository itself — the same
+deriver that produces the pipeline diagram in the next section — and `npm run verify` fails if
+it no longer matches what is on disk. Add a workflow without regenerating and the build turns
+red. The one-line descriptions are written by a person; an assertion requires every file to
+have one, which is not the same as checking that it is right.
+
+That distinction is not pedantry. This block used to be typed by hand, and a read-through
+found it wrong four ways at once — three workflows missing, a skill missing, a count derived
+from the missing workflows, and two shipped cycles it did not show — while the build stayed
+green and every check passed. The sentence at the top of this section was false for several
+weeks and nothing noticed.
 
 Seven of the ten workflows spend no tokens at all. That is deliberate: the stages that must
 never fail for quota reasons are the stages that do not consume quota.

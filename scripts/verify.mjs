@@ -104,7 +104,24 @@ try {
   checker.on('link', (link) => {
     if (link.state === 'BROKEN') broken.push(`${link.status} ${link.url}`);
   });
-  const result = await checker.check({ path: ROOT_URL, recurse: true });
+
+  // Do not follow links back to the deployed site. Two reasons, and the second one is why
+  // this exists at all:
+  //
+  //   1. CI should not depend on rashid.fr being up. A link check that fails because the
+  //      host hiccupped is a check people learn to ignore.
+  //   2. Every page carries its own canonical and og:url, which point at where this build
+  //      WILL live. Verify runs before the FTP publish, so on the first deploy of any new
+  //      preview slug that URL is guaranteed to 404 — the page is being checked against a
+  //      directory it is about to create. Per-intent previews made that the normal case
+  //      rather than a curiosity: /sdlc-preview/ already existed, /sdlc-preview/0003/ did
+  //      not, and the very first run of the new workflow failed on exactly this.
+  //
+  // What is still checked is everything that matters here: every internal link, at the real
+  // base path. A wrong base still fails, which is the bug this step was built for.
+  const linksToSkip = [String.raw`^https?://rashid\.fr/`];
+
+  const result = await checker.check({ path: ROOT_URL, recurse: true, linksToSkip });
 
   console.log(`  ${result.links.length} links checked`);
   if (broken.length) {
