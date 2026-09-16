@@ -177,6 +177,5 @@
       "short": "the commands, including the one that matters",
       "detail": "npm run verify builds, serves at the real base path, crawls every link and runs the evals. A Node script rather than shell glue, because anything with shell in it is a portability bug waiting for a reader on another OS."
     }
-  ],
-  "otherChains": 6
+  ]
 }

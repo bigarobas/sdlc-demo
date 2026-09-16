@@ -51,7 +51,6 @@ const payload = {
     short: descriptions[n.path].short,
     ...(descriptions[n.path].detail ? { detail: descriptions[n.path].detail } : {}),
   })),
-  otherChains: tree.otherChains,
 };
 
 const rendered = JSON.stringify(payload, null, 2) + '\n';
@@ -70,5 +69,5 @@ if (check) {
 } else {
   mkdirSync(dirname(OUT), { recursive: true });
   writeFileSync(OUT, rendered);
-  console.log(`  repo tree: ${payload.nodes.length} entries, ${payload.otherChains} other chains`);
+  console.log(`  repo tree: ${payload.nodes.length} entries`);
 }
