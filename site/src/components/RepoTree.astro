@@ -10,9 +10,8 @@
 
 import data from '../generated/repo-tree.json';
 
-const { nodes, otherChains } = data as {
+const { nodes } = data as {
   nodes: { path: string; kind: string; short: string; detail?: string }[];
-  otherChains: number;
 };
 
 type Row = {
@@ -89,10 +88,11 @@ for (let i = 0; i < rows.length; i++) {
     ))}
   </ul>
 
-  {/* A count, not a list. The reporter asked for one example chain; saying how many others
-      exist stops the omission reading as "there are only two" — and it is derived, so it
-      cannot drift the way the hand-written version did. */}
+  {/* One chain shown, the rest named but not counted. A derived count was here and was
+      removed: it changed on every new intent, which changed the generated file, which lives
+      under site/ — so filing an intent rebuilt and redeployed the whole site for one digit.
+      The tree now depends on which files exist, never on how many intents there are. */}
   <p class="repo-note">
-    …and {otherChains} more artifact chains under <code>docs/sdlc/</code>.
+    One artifact chain shown in full. The others are in the repository, alongside it.
   </p>
 </figure>

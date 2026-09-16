@@ -67,17 +67,23 @@ export function deriveTree() {
     }
   }
 
-  // How many other chains exist. A number, not a list — and derived, so it cannot drift the
-  // way "only 0000-bootstrap" did in the hand-written version this replaces.
-  const others = existsSync(SDLC)
-    ? readdirSync(SDLC, { withFileTypes: true }).filter(
-        (d) => d.isDirectory() && /^\d{4,}-/.test(d.name) && d.name !== EXAMPLE_CHAIN,
-      ).length
-    : 0;
+  // NO COUNT OF THE OTHER CHAINS, and the reason is the pipeline rather than the page.
+  //
+  // This used to derive "…and N more artifact chains under docs/sdlc/", so that showing one
+  // example chain could not read as "there are only two". Honest, and it cost more than it
+  // was worth: the number changed every time an intent was filed, which changed this
+  // generated file, which lives under site/ — so every intent pull request built the site,
+  // published a preview and queued a production deploy, for one digit.
+  //
+  // That quietly undid the split between the process half of the pipeline and the app half.
+  // The tree now depends only on which files EXIST, never on how many intents there are, so
+  // an intent pull request touches nothing under site/ at all.
+  //
+  // The section still links the repository, and a reader who wants the count can look.
 
   nodes.sort((a, b) => a.path.localeCompare(b.path));
 
-  return { nodes, otherChains: others };
+  return { nodes };
 }
 
 /** Paths that must carry a description. Every derived entry, with no exceptions. */
