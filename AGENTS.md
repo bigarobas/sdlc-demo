@@ -73,6 +73,27 @@ Prose: plain, specific, no marketing register. This site argues that the honest 
 a thing beats the impressive-sounding version, so it should read that way. Shells are
 labelled as shells.
 
+## End every reply with the commands
+
+Whenever a reply asks the operator to do something, it ends with a section listing those
+things as commands they can run. Not a description of the action — the command.
+
+- **One command per fenced `bash` block.** The terminal renders a Run button per block, so
+  two commands in one block means one of them gets skipped or edited by hand.
+- **Never chain with `&&`.** PowerShell 5.1 has no `&&`, and the operator works there. This
+  is already listed below as a mistake and it keeps happening; it belongs here too, where it
+  is read before the reply rather than after the error.
+- **Say what cannot be a command.** Approving a deployment, editing a file on a branch in the
+  web UI and applying a label are clicks. Name the exact path — _Actions → the run → Review
+  deployments → Approve_ — rather than omitting them and leaving a half-list.
+- **Nothing to do is a valid ending.** Say so explicitly. A reply with no command section and
+  no "nothing for you" line is indistinguishable from one that forgot.
+
+This exists because the rule already lived in `.claude/skills/sdlc/SKILL.md`, which only
+applies while that skill is running — so the commands appeared during a stage and not
+otherwise, and the difference looked arbitrary from the outside. Same failure as every other
+one on this list: a rule in a place that is read sometimes.
+
 ## Mistakes already made here — do not repeat them
 
 - **Absolute asset paths break the build.** Both deploy targets live in a subfolder
