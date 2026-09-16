@@ -22,8 +22,18 @@ const PROTECTED = [
     why: 'CI workflows define what runs without a human. An agent that can edit them can grant itself new powers.',
   },
   {
-    pattern: /^\.claude\/settings\.json$/,
-    why: 'settings.json wires the hooks and permissions. Editing it would disable the very rule denying this edit.',
+    // Every settings file, not just the project one.
+    //
+    // This pattern used to be /^\.claude\/settings\.json$/ — an exact match, which left
+    // `.claude/settings.local.json` writable. Local settings take PRECEDENCE over project
+    // settings, so an agent that wrote that one file could grant itself everything the deny
+    // list refuses, and the deny list would still be sitting there looking enforced.
+    //
+    // Found while planning intent 0050, which is the intent about writing the permission
+    // boundary down. The boundary had a door in it, and the thing that found the door was
+    // taking the spec's own instruction seriously: verify before believing.
+    pattern: /^\.claude\/settings(\.[A-Za-z0-9-]+)*\.json$/,
+    why: 'settings.json and settings.local.json wire the hooks and permissions, and local overrides project. Editing either would disable the very rule denying this edit.',
   },
   {
     pattern: /^\.claude\/hooks\//,
