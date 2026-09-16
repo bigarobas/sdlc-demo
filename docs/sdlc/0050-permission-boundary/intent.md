@@ -1,6 +1,6 @@
 # Intent 0050 — the agent's permission boundary is not written down anywhere executable
 
-- **Status:** draft
+- **Status:** accepted
 - **Author:** Rashid Ghassempouri
 - **Date:** 2026-09-14
 - **Issue:** [#50](https://github.com/bigarobas/sdlc-demo/issues/50)
