@@ -26,6 +26,24 @@ const RULES = [
     pattern: /\bgit\s+push\b[^\n]*\bmain\b/,
     why: 'pushing straight to main bypasses the PR, the review and the deploy gate',
   },
+  // `gh api` with a write method is every denied command wearing a different hat.
+  //
+  // settings.json denies `gh pr merge`, `gh secret`, `gh repo edit` and `gh workflow run`.
+  // All four are reachable as REST calls — `gh api -X PUT repos/o/r/pulls/7/merge` is the
+  // merge, through a door the deny list does not watch.
+  //
+  // This belongs in the hook rather than in settings.json because permission rules match by
+  // prefix: a deny for `Bash(gh api -X:*)` catches the flag only when it comes first, and
+  // `gh api repos/o/r -X PUT` sails past it. A regex sees the flag wherever it appears, which
+  // is the whole reason the deterministic layer exists alongside the declarative one.
+  //
+  // Reads are untouched. `gh api` without a write method is not matched here, and is not on
+  // the allowlist either, so it prompts — which is the right treatment for a tool that can
+  // reach every endpoint the token has.
+  {
+    pattern: /\bgh\s+api\b[^\n]*(?:-X|--method)[=\s]+(?:POST|PUT|PATCH|DELETE)\b/i,
+    why: 'gh api with a write method reaches merge, secrets and settings — the endpoints settings.json denies by name',
+  },
 ];
 
 function deny(reason) {

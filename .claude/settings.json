@@ -1,25 +1,94 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git rev-list:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git mv:*)",
+      "Bash(git restore:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git reflog:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr ready:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run list:*)",
+      "Bash(npm run:*)",
+      "Bash(npx prettier:*)"
+    ],
+    "deny": [
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh secret:*)",
+      "Bash(gh variable:*)",
+      "Bash(gh workflow run:*)",
+      "Bash(git push --delete:*)",
+      "Bash(git push origin --delete:*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/protect-guardrails.mjs" },
-          { "type": "command", "command": "node .claude/hooks/protect-approved.mjs" }
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-guardrails.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-approved.mjs"
+          }
         ]
       },
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "node .claude/hooks/guard-bash.mjs" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/guard-bash.mjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/format.mjs" },
-          { "type": "command", "command": "node .claude/hooks/audit.mjs" }
+          {
+            "type": "command",
+            "command": "node .claude/hooks/format.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/audit.mjs"
+          }
         ]
       }
     ]
