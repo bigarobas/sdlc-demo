@@ -58,6 +58,54 @@ Two things were added on top:
   fork at all. They would have failed anyway for want of credentials; not starting is cheaper
   and reads as a control rather than a bug.
 
+### The one that was a promise until last week
+
+Everything above was built early. This one was added after noticing the repository was making
+a claim it could not back.
+
+The agent was told never to merge. It never did. But nothing stopped it: `gh pr merge --admin`
+on the operator's own credentials would have worked, and the only thing preventing it was the
+model reading an instruction in a skill file and choosing to follow it — five times in one
+session, each one a decision that could have gone the other way.
+
+That is precisely what the top of this section says is not enforcement.
+
+So the boundary is now a list in a file. `.claude/settings.json` carries an allowlist of the
+routine commands and a deny list of the ones that must stay human, and the refusal happens
+before the tool runs:
+
+> Permission to use Bash with command `gh pr merge 61 --squash --admin` has been denied.
+
+Different wording from the hook's denial, because it is a different layer. Both are visible,
+and neither can override the other — an allowlist entry does not suppress a hook. That was the
+assumption the whole design rested on, so it was tested rather than believed: permit the push
+verb, attempt a write to the default branch, watch the hook refuse anyway.
+
+**The boundary had a door in it, and writing this is what found it.** `protect-guardrails.mjs`
+matched the exact filename `.claude/settings.json`. It did not match
+`.claude/settings.local.json` — and local settings take precedence over project settings. One
+file write would have granted the agent everything the deny list refuses, while the deny list
+sat there looking enforced. Found while planning the change, before shipping it, by taking the
+spec's own instruction seriously: verify before believing.
+
+### What is still not enforced, and should be said
+
+Approving a deployment is a click in the Actions tab. Deploying follows from it. **No
+allowlist and no hook can reach either** — they are not shell commands.
+
+What holds them is what has always held them: the `production` environment's required reviewer,
+and an FTP credential that exists in no other job. That is a real control and a strong one. It
+is not the same kind of control as the deny list, and a section that listed the enforced ones
+and quietly omitted this would be overclaiming in exactly the way this section warns against.
+
+So the honest summary is narrower than "the agent cannot act": **the agent can go from an
+accepted framing to a published preview URL entirely on its own** — no approval, no human step
+— and it still cannot reach production. Unattended deployment and a hard boundary, in the same
+pipeline. The preview is safe not because the agent is trusted but because that FTP account is
+chrooted to the preview directory and cannot see the live site.
+
+Blast radius, not permission. Again.
+
 ### Prompt injection is contained here, not prevented
 
 An agent reads pull request diffs and issue bodies, and on a public repository anyone can
