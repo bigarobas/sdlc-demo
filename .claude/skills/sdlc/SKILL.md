@@ -40,9 +40,29 @@ does not exist sends someone looking for a thing that was never there.
   nobody read means discovering a wrong framing after paying for the implementation. The
   acceptance steps are the cheap place to be wrong. `--auto` is the operator saying they
   accept that trade for this one piece of work; see below.
-- **Never merge, never approve, never deploy.** Those are human acts, and two of them are
-  structurally impossible anyway — `CODEOWNERS` prevents self-approval and the `production`
-  environment holds the credential. Report the commands instead of attempting them.
+- **Never merge, never approve, never deploy.** All three are human acts. Only one of them is
+  enforced, and it is worth knowing which, because a rule you believe is machinery is a rule
+  you stop watching.
+
+  **Merging is denied by configuration.** `Bash(gh pr merge:*)` is on the deny list in
+  `.claude/settings.json`, so the tool call is refused before it runs. Try it and see the
+  refusal; that is the point of it being real. `CODEOWNERS` is a separate control and a weaker
+  one — it prevents approving your own pull request, not merging with `--admin`.
+
+  **Approving a deployment and deploying are not commands at all.** Approval is a click in the
+  Actions tab, and the deploy follows from it. No allowlist or hook can reach either. What
+  holds them is the `production` environment's required reviewer and a credential that exists
+  in no other job — real, and a different mechanism from this skill.
+
+  So: report the commands instead of attempting them, as before. The instruction has not
+  changed. What changed is that this file used to say two of the three were "structurally
+  impossible", which was never true of merging and was the gap intent 0050 existed to close.
+
+- **Put the intent id in the branch name** — `intent/0072-site-favicon`, not
+  `feat/site-favicon`. `preview.yml` derives the preview slug from the first four-digit run in
+  the branch, so the URL becomes `/sdlc-preview/0072/` and matches the artifact directory. A
+  branch without one still works, falling back to `pr-<number>`, but the connection between a
+  preview and the work it belongs to is lost.
 - **`npm run verify` passes before any PR.** Prefer the `verifier` subagent so build output
   stays out of this context.
 - **Open every pull request as a draft** — `gh pr create --draft`. A draft still runs the
