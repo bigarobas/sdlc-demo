@@ -16,8 +16,19 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : nu
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <!-- Never an absolute path: both deploy targets live in a subfolder. -->
-    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    {/* Never an absolute path: every deploy target is a subfolder — /sdlc/, and now
+        /sdlc-preview/<id>/ as well. An absolute /favicon-32.png 404s, which is the first
+        entry in the mistakes list and shipped here once.
+
+        PROVENANCE, because a binary in public/ with no origin is a file nobody can reason
+        about later. These are Digital Virgo's favicon, taken from digitalvirgo.com on
+        2026-09-16 and committed here. PNG because that is all the source publishes — there
+        is no SVG to take, and tracing one would mean inventing a mark that merely resembles
+        theirs. Reuse is a permission question that nobody outside this repository has
+        answered; intent 0072 records that rather than resolving it. [spec 0072 D1-D4] */}
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}favicon-32.png`} />
+    <link rel="icon" type="image/png" sizes="192x192" href={`${base}favicon-192.png`} />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
     <title>{title}</title>
     <meta name="description" content={description} />
 
