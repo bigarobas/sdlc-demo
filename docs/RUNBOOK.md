@@ -3,6 +3,26 @@
 How to run this repository, and what to do when it misbehaves. For the talk script, see
 [TALK.md](./TALK.md) — that document has a date on it and this one does not.
 
+## Two ways in
+
+**The short one, when the shape of the work is already clear:**
+
+```
+/intent "add a favicon to the website"
+```
+
+The skill asks at most four questions in one round, opens the issue that supplies the id,
+writes the artifact with your answers folded in, shows you the finished file, and asks once
+whether to accept it. Three actions from idea to an accepted intent, and no CI agent run.
+
+Then `/sdlc <id> --auto`, and a preview URL appears without anything further from you.
+
+**The long one, below, when the framing is contested** or when somebody other than you should
+weigh in before anything is written. An issue is a place several people can argue; the skill is
+a conversation with one. That is the whole trade.
+
+Both end in the same place — an accepted `intent.md` with an issue number for an id.
+
 ## The loop, end to end
 
 Worked through with a real example: **adding a credits section to the site.** Every step says
