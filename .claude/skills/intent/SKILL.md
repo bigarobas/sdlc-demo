@@ -1,6 +1,6 @@
 ---
 name: intent
-description: Stage 1 (Plan). Turn a raw idea, a request, or a GitHub issue into a docs/sdlc/NNNN-slug/intent.md artifact. Use before any design or implementation work, and whenever someone describes a problem without an accepted intent on record.
+description: Stage 1 (Plan). Turn a raw idea, a request, or a GitHub issue into a docs/sdlc/NNNN-slug/intent.md artifact. Invoked with a description — /intent "add a favicon to the website" — it interviews the operator, opens the issue that supplies the id, and can finish with an accepted intent in one sitting. Use before any design or implementation work, and whenever someone describes a problem without an accepted intent on record.
 ---
 
 # Writing an intent
@@ -48,6 +48,59 @@ same rule as "one intent, one problem", enforced one level up.
 3. Ask the questions you cannot answer yourself. Do not invent constraints, dates, budgets
    or account names — leave them as open questions and say who must answer.
 4. Stop. The intent needs a human `accepted` before Stage 2 begins.
+
+## Interactive mode — `/intent "add a favicon to the website"`
+
+Invoked with a description rather than an issue number, this drafts the intent **with the
+operator in the room** instead of leaving questions for later. It exists because the
+alternative route costs six actions — open an issue, label it, wait for the drafting agent,
+read its pull request, edit the answers in, merge — and because the answers kept ending up
+somewhere nothing reads.
+
+### The order matters
+
+1. **Ask first, write second.** Use `AskUserQuestion`, **at most four questions, batched into
+   one round**. Ask only what changes the work: if two different answers produce the same
+   intent, it is not a question, it is a decision you should make and record. For "add a
+   favicon" that is probably one question, not four.
+2. **Open the issue**, with `gh issue create`, titled as the problem. The number it returns is
+   the id. Not paperwork: the id rule above exists because a locally chosen number collides,
+   and this is where the two-way trail comes from.
+3. **Write `intent.md`**, with the answers folded into the sections they belong to — never
+   left in an Open questions list that has already been answered out loud.
+4. **Show the assembled file and ask once: accept it?** This step is not optional and not a
+   formality.
+5. On yes, set `Status: accepted` and commit. On no, leave `draft` and say what would need to
+   change.
+
+### Why step 4 cannot be skipped
+
+Accepting is the gate the whole loop is built around. Answering four questions is not the same
+as reading the document those answers were assembled into — the intent is the synthesis, and
+the synthesis is the thing being agreed to. A skill that emitted `accepted` without showing
+the artifact would be collecting agreement for something nobody read, which is the exact
+failure `Status:` exists to prevent.
+
+With step 4, `accepted` is honest and is arguably a stronger agreement than merging a pull
+request somebody skimmed.
+
+### Say how it was accepted
+
+The commit message must record that the intent was drafted and accepted interactively, in one
+sitting, rather than read and accepted separately. A reviewer can then tell the two apart —
+the same requirement `--auto` carries, for the same reason.
+
+### When not to use it
+
+When the framing is genuinely contested, or when somebody other than the operator should weigh
+in. An issue is a place several people can argue before anything is written; this is a
+conversation with one person. Speed is the trade, and it is the right trade for work whose
+shape is already clear and the wrong one for work whose shape is the question.
+
+### It needs the network
+
+`gh issue create` means this does not work offline. Say so and stop, rather than inventing an
+id to keep going.
 
 ## Template
 
