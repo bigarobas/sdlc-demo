@@ -76,16 +76,64 @@ byte-identical to the installed one.
 
 ## Open questions
 
+All three answered on 2026-09-16, before the spec. The second one changed the draft proposal
+rather than merely settling a preference.
+
 1. **Allow the git verbs broadly and leave the default-branch rule to `guard-bash.mjs`, or
    narrow them in the allowlist as well?** Two layers stating the same rule is either useful
    redundancy or a second place to forget when the rule changes. — Rashid
+
+   **Answer: broadly. The hook owns it.**
+
+   `guard-bash.mjs` already denies writes to the default branch and force-pushes while
+   allowing `--force-with-lease`, and an allowlist entry never overrides a hook denial — so
+   `Bash(git push:*)` allowed plus the hook denying `main` is still denied.
+
+   The deciding fact is that the allowlist could not express the rule anyway. Permission
+   patterns match by prefix, and there is no prefix that means "any branch except `main`".
+   Narrowing would either block legitimate pushes or be decorative, and a decorative control
+   is worse than none — it invites the belief that something is enforced when it is not.
+
 2. **Does `gh api` belong on the allowlist?** It is how the agent reads run logs and check
    states, and it also reaches every write endpoint the token has. Allowing it may quietly
    re-open everything the deny list closes. — Rashid
+
+   **Answer: no. Remove it — this question found a hole in the draft proposal.**
+
+   The deny list blocks `gh pr merge`. The allowlist as drafted permitted `Bash(gh api:*)`,
+   and `gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge` is the same merge through a door
+   left open. The same applies to secrets, repository settings and workflow dispatch. One
+   broad allow made **every entry in the deny list decorative**.
+
+   It cannot be narrowed either. A deny for `Bash(gh api -X:*)` catches the flag only when it
+   comes first; `gh api repos/... -X PUT` sails past, because the write method may appear
+   anywhere in the argument list and a prefix pattern cannot express "absent".
+
+   So `gh api` is prompted for, every time, which is the correct treatment of a tool that can
+   do anything. `gh run view` and `gh pr checks` cover most of what it was being used for.
+
+   A pattern denying `gh api` combined with a write method belongs in `guard-bash.mjs` as
+   well, because a hook matches with a regex and therefore can see a flag anywhere. That is a
+   second guardrail file and therefore a second proposal.
+
 3. **Does denying the merge command in settings make the `sdlc` skill's rule redundant?**
    Keeping both means one enforces and one explains, which is how the guardrail hooks and
    `AGENTS.md` already work. Removing the sentence would make the skill shorter and the reason
    invisible. — Rashid
+
+   **Answer: keep both, and change what the skill claims.**
+
+   `protect-guardrails.mjs` enforces and `AGENTS.md` explains; this is that pattern. The
+   enforcement stops the action, the prose stops the argument about whether it should have.
+
+   More importantly, the skill covers ground the settings cannot reach. "Never merge, never
+   approve, never deploy" — **approving a deployment is not a shell command at all.** It is a
+   click in the Actions tab. So even with the deny list installed, two of those three remain
+   conventions, backed by the `production` environment's required reviewer rather than by any
+   rule in this repository.
+
+   The skill should therefore stop implying it is the control. It should say which half is
+   denied by configuration and which half rests on the environment gate.
 
 ## Not in scope
 

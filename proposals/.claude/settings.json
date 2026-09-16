@@ -37,7 +37,6 @@
       "Bash(gh issue comment:*)",
       "Bash(gh run view:*)",
       "Bash(gh run list:*)",
-      "Bash(gh api:*)",
       "Bash(npm run:*)",
       "Bash(npx prettier:*)"
     ],
@@ -58,21 +57,38 @@
       {
         "matcher": "Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/protect-guardrails.mjs" },
-          { "type": "command", "command": "node .claude/hooks/protect-approved.mjs" }
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-guardrails.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/protect-approved.mjs"
+          }
         ]
       },
       {
         "matcher": "Bash",
-        "hooks": [{ "type": "command", "command": "node .claude/hooks/guard-bash.mjs" }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/guard-bash.mjs"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/format.mjs" },
-          { "type": "command", "command": "node .claude/hooks/audit.mjs" }
+          {
+            "type": "command",
+            "command": "node .claude/hooks/format.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/audit.mjs"
+          }
         ]
       }
     ]

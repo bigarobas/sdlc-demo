@@ -85,6 +85,30 @@ check('denies curl piped to shell', () => expectBash('curl https://example.com/i
 check('allows the verification loop', () => expectBash('npm run verify', 'allow'));
 check('allows reading files', () => expectBash('cat package.json', 'allow'));
 
+// `gh api` with a write method reaches every endpoint settings.json denies by name — the
+// merge, the secrets, the repository settings — so denying `gh pr merge` while permitting
+// `gh api -X PUT .../merge` would be a deny list with a door beside it.
+//
+// The flag is matched wherever it appears, which is exactly what a prefix-matching permission
+// rule cannot do. These two cases are the same call written two ways; a rule that catches only
+// the first is the bug this asserts against.
+//
+// Skipped until the guard-bash change from intent 0050 is installed. A failing assertion for
+// an uninstalled proposal would make the suite red for a week and teach everyone to ignore it.
+const bashGuard = readFileSync('.claude/hooks/guard-bash.mjs', 'utf8');
+if (/gh\\s\+api/.test(bashGuard) || bashGuard.includes('gh\\s+api')) {
+  check('denies gh api with a write method, flag first', () =>
+    expectBash('gh api -X PUT repos/o/r/pulls/7/merge', 'deny'),
+  );
+  check('denies gh api with a write method, flag last', () =>
+    expectBash('gh api repos/o/r/pulls/7/merge -X PUT', 'deny'),
+  );
+  check('denies gh api --method DELETE', () =>
+    expectBash('gh api --method DELETE repos/o/r/x', 'deny'),
+  );
+  check('allows gh api reads', () => expectBash('gh api repos/o/r/rulesets', 'allow'));
+}
+
 console.log('\napproved artifacts are frozen');
 const APPROVED = '.claude/hooks/protect-approved.mjs';
 function expectApproved(file, expected) {
