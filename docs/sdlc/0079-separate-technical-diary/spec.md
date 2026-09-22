@@ -84,10 +84,27 @@ Both readings are defensible:
 - **The counter:** nobody clicks. Collapsed content is unread content, and the argument that
   makes this site worth looking at would be optional.
 
-**This is a decision for the operator, not for the spec**, and D8 exists so it can be made on
-evidence: convert one section, look at it, and decide whether the site still argues what it
-means to argue. `09-scars.md` is the right first one — it is almost entirely diary by D9, so it
-is the hardest case and will settle the question fastest.
+**Decided by the operator on 2026-09-22, in favour of the intent:**
+
+> nothing is lost because it's one click away
+
+So the work proceeds. Recorded here rather than in a conversation, because this is the
+decision every later section inherits, and someone converting section 07 in a month should be
+able to see that it was taken deliberately and on what grounds — not infer it from the fact
+that somebody did it.
+
+**What that decision commits to, and what it does not.** It accepts that the diary is one
+click from the fast pass. It does not accept that the diary can become a place things are put
+to get them off the page. If a paragraph is worth keeping it is worth a summary line that
+makes someone open it, which is what D5 is for — and if converting a section leaves a
+technical layer nobody would bother reading, that is evidence against the rule rather than a
+section done correctly.
+
+D8 still stands, for a narrower reason than before. It was written so the tension above could
+be settled on evidence; that is settled. What remains is whether **D9 actually divides prose
+cleanly**, which is a different question and still unanswered. `09-scars.md` is the right first
+section for it — almost entirely diary by D9, so it is the hardest case and will show fastest
+whether the rule produces two readable halves or one good one and one husk.
 
 ## 5. Other risks
 
