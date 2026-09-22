@@ -1,6 +1,6 @@
 # Intent 0079 — separate each section's technical summary from its diary
 
-- **Status:** draft
+- **Status:** accepted
 - **Author:** Claude Sonnet 5
 - **Date:** 2026-09-22
 - **Issue:** [#79](https://github.com/bigarobas/sdlc-demo/issues/79)
@@ -63,18 +63,22 @@ by the problem as stated.
   the ones that currently carry post-mortem material (e.g. `09-scars.md`, `10-cost.md`)? A
   section like `01-thesis.md` reads as argument rather than as a mix of fact-and-reflection —
   it is not obvious a diary applies to it at all.
+  Answer :  every part that doesn't directly help understanding the technical implementation should be moved to diary.
 - **What does "collapsable" mean on a long-scroll, no-JS-navigation site?** House style
   (`.claude/skills/house-style/`) governs the site's existing interaction patterns; whether a
   collapsible disclosure element fits that system, and what triggers/closes it, is a design
   question for the spec stage.
+  Answer : a content that the user can open/close and makes the default read simpler. Only the user that whants to now more will open a colapsed diary entry.
 - **Does existing section prose get rewritten, or does new content get authored into the new
   structure going forward?** Retrofitting ten existing files into two registers each is a
   larger and more subjective task than adding the structure and filling it in over time. The
   issue does not say which is wanted.
+  Answer : Both existing and new content should follow this
 - **Is "technical summary" meant to replace the current prose, or sit above it as a new,
   shorter layer?** If the former, the site's current voice (documented as deliberately plain
   and specific, not neutral/marketing) may already satisfy part of the ask; if the latter, every
   section grows a second piece of writing.
+  Answer : it should replace the current prose
 
 These are named as open questions rather than answered here, per the issue-drafting rules —
 answering them is the spec stage's job, not this one's. They must be answered by editing this
