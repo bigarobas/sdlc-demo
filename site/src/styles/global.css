@@ -686,3 +686,61 @@ footer {
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------------------
+   The diary — the reflective half of a section, behind a disclosure.  [spec 0079 D3-D5]
+
+   Quieter than the body on purpose. It is an aside a reader chooses, not a second article
+   competing with the first, so it is muted, ruled, and set at the smaller step.
+--------------------------------------------------------------------------------------- */
+
+.diary {
+  margin: 2rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--border);
+}
+
+.diary > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--step--1);
+  color: var(--muted);
+  padding: 0.35rem 0;
+}
+
+.diary > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A rotating caret, so the control reads as a control without an icon set. */
+.diary > summary::before {
+  content: '▸';
+  display: inline-block;
+  width: 1rem;
+  color: var(--accent);
+  transition: transform 120ms ease;
+}
+
+.diary[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.diary > summary:hover,
+.diary > summary:focus-visible {
+  color: var(--accent);
+}
+
+.diary > *:not(summary) {
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.diary h2 {
+  font-size: var(--step-0);
+  color: var(--text);
+  margin-top: 1.5rem;
+}
+
+.diary strong {
+  color: var(--text);
+}

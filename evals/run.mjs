@@ -251,6 +251,45 @@ check('every workflow states what triggers it', () => {
   return silent.length ? `no trigger derived for: ${silent.join(', ')}` : null;
 });
 
+console.log('\nsections — a diary is not a section');
+
+// `import.meta.glob('../content/sections/*.md')` matches `09-scars.diary.md` as readily as
+// `09-scars.md`. Without the filter in index.astro a diary renders as a section of its own:
+// numbered in the nav, counted in the scroll-spy, and wrong in a way that looks deliberate.
+//
+// It would also ship green. Nothing else in the suite counts sections, the build would not
+// care, and the link check would happily crawl twelve of them. That is this repository's
+// recurring shape, which is why it gets an assertion rather than a comment. [spec 0079]
+const sectionFiles = readdirSync('site/src/content/sections').filter((f) => f.endsWith('.md'));
+
+check('every section file has a slug and a title', () => {
+  const bad = sectionFiles
+    .filter((f) => !f.endsWith('.diary.md'))
+    .filter((f) => {
+      const fm = readFileSync(`site/src/content/sections/${f}`, 'utf8').split('---')[1] ?? '';
+      return !/^slug:/m.test(fm) || !/^title:/m.test(fm);
+    });
+  return bad.length ? `missing slug or title: ${bad.join(', ')}` : null;
+});
+
+check('every diary has a summary and a section to belong to', () => {
+  const problems = [];
+  for (const f of sectionFiles.filter((f) => f.endsWith('.diary.md'))) {
+    const fm = readFileSync(`site/src/content/sections/${f}`, 'utf8').split('---')[1] ?? '';
+    if (!/^summary:/m.test(fm)) problems.push(`${f} has no summary`);
+    const owner = f.replace('.diary.md', '.md');
+    if (!sectionFiles.includes(owner)) problems.push(`${f} has no ${owner}`);
+  }
+  return problems.length ? problems.join('; ') : null;
+});
+
+check('a diary is filtered out of the section list', () => {
+  const page = readFileSync('site/src/pages/index.astro', 'utf8');
+  return /\.diary\.md/.test(page) && /filter\(/.test(page)
+    ? null
+    : 'index.astro does not filter .diary.md out of the glob — a diary would render as a section';
+});
+
 console.log('\nrepository tree — generated, described, and kept off the diagram');
 const { deriveTree } = await import('../scripts/repo-tree/model.mjs');
 const tree = deriveTree();

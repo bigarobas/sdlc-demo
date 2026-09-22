@@ -11,15 +11,35 @@ import { build, commitUrl, prUrl, builtAtLabel } from '../lib/build-info.js';
 // a content collection keeps this working across Astro majors, where the collections API has
 // moved more than once — and it means adding a section is adding one file, which is exactly
 // the shape of change an agent handles well.
+//
+// A section may have a diary beside it — `09-scars.md` and `09-scars.diary.md` — holding the
+// reflective half behind a disclosure. [spec 0079]
+//
+// The glob is still `*.md`, which MATCHES `*.diary.md`, so the diaries are filtered out here
+// by name rather than by a cleverer pattern. Vite's glob does not do negation, and the
+// alternative — a second directory — would put a section and its diary in different places for
+// no gain. Getting this wrong renders a diary as a twelfth section, silently, which is why an
+// eval asserts the section count is unchanged by adding one.
 const modules = import.meta.glob('../content/sections/*.md', { eager: true });
 
+const isDiary = (path: string) => path.endsWith('.diary.md');
+
+// Keyed by the section filename the diary belongs to, so the lookup below cannot mismatch.
+const diaries = new Map<string, any>(
+  Object.entries(modules)
+    .filter(([path]) => isDiary(path))
+    .map(([path, mod]) => [path.replace('.diary.md', '.md'), mod]),
+);
+
 const sections = Object.entries(modules)
+  .filter(([path]) => !isDiary(path))
   .map(([path, mod]: [string, any]) => ({
     path,
     slug: mod.frontmatter.slug,
     title: mod.frontmatter.title,
     stage: mod.frontmatter.stage,
     Content: mod.Content,
+    diary: diaries.get(path) ?? null,
   }))
   .sort((a, b) => a.path.localeCompare(b.path));
 
@@ -31,7 +51,7 @@ const navItems = sections.map(({ slug, title }) => ({ slug, title }));
   description="A static site explaining the AI-native SDLC, produced by the SDLC it describes."
   sections={navItems}
 >
-  {sections.map(({ slug, title, stage, Content }, i) => (
+  {sections.map(({ slug, title, stage, Content, diary }, i) => (
     <section class="section" id={slug}>
       <div class="section-index">
         {String(i + 1).padStart(2, '0')}
@@ -50,6 +70,16 @@ const navItems = sections.map(({ slug, title }) => ({ slug, title }));
           </button>
           <div class="diagram-canvas" set:html={pipelineSvg} />
         </figure>
+      )}
+      {/* The diary, collapsed. Native <details>, so it opens with JavaScript disabled and is
+          keyboard-reachable without anything being wired up. Last in the section, once — not
+          per paragraph, which would turn the fast pass into a field of buttons. [spec 0079 D3,
+          D4] */}
+      {diary && (
+        <details class="diary">
+          <summary>{diary.frontmatter.summary}</summary>
+          <diary.Content />
+        </details>
       )}
     </section>
   ))}
