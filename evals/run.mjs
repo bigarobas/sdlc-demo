@@ -203,7 +203,22 @@ check('an intent accepted with no spec yet has answered its open questions', () 
     // A question is answered when the text under it says so. Anything else is a question
     // nobody has come back to.
     const hasQuestion = /\?/.test(questions);
-    const hasAnswer = /\*\*Answer|\*\*Decided|— answered/i.test(questions);
+    // "Answer:" in any reasonable shape — bolded or not, space before the colon or not.
+    //
+    // The first version required `**Answer`, and on 2026-09-22 it failed intent 0079, whose
+    // four questions were every one of them answered, in full, as `Answer : ...`. The artifact
+    // was correct and the assertion was wrong, and the only remedy on offer was making a human
+    // reformat their prose to match a regex nobody had published.
+    //
+    // That is a check crying wolf, which is worse than no check — the same failure the D3
+    // guard had, and the reason it was rewritten. A check that fails on correct work is one
+    // people learn to ignore, and then it is not there for the case it was built for.
+    //
+    // Kept narrow deliberately. `Decided:` and `Decision:` were in a draft of this line and
+    // came out again: no artifact uses them, and widening a check for cases that do not exist
+    // buys nothing and costs precision. A question mark with no answer marker anywhere near
+    // it is still exactly what this catches.
+    const hasAnswer = /(^|\W)(\*\*)?Answer\s*:|— answered/im.test(questions);
     if (hasQuestion && !hasAnswer) offenders.push(name);
   }
   return offenders.length
