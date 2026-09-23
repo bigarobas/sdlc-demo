@@ -56,11 +56,14 @@ problem as stated.
   implementation does not cover at all (e.g., only dark mode being wrong somewhere, or a
   specific page not honouring the palette). Whoever accepts this intent must confirm the reading
   above or replace it.
+  ANSWER: add it anyway with simple switch of text and background color do not change other components
 - **Should the choice persist across visits/pages**, or apply only for the current page load?
   Not stated in the issue.
+  ANSWER: no
 - **Where should the control live** — global nav, a floating control, per-page — and does it
   need to be reachable without JavaScript? Not stated in the issue; a design decision for the
   spec, not this document.
+  ANSWER: Global nav
 
 Open questions must be answered by editing this file on its branch, not in a pull request
 comment — a comment on a merged pull request is read by nobody and by no script.
